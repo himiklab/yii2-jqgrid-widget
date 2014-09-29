@@ -1,0 +1,26 @@
+{
+    "name": "himiklab/yii2-jqgrid-widget",
+    "description": "A powerful ajax-enabled grid widget for Yii2",
+    "keywords": ["yii2", "jqgrid", "grid", "ajax", "widget"],
+    "type": "yii2-extension",
+    "license": "MIT",
+    "support": {
+        "source": "https://github.com/himiklab/yii2-jqgrid-widget",
+        "issues": "https://github.com/himiklab/yii2-jqgrid-widget/issues"
+    },
+    "authors": [
+        {
+            "name": "HimikLab",
+            "homepage": "https://github.com/himiklab"
+        }
+    ],
+    "require": {
+        "yiisoft/yii2": "*",
+        "bower-asset/jqGrid": "4.6.*"
+    },
+    "autoload": {
+        "psr-4": {
+            "himiklab\\jqgrid\\": ""
+        }
+    }
+}
