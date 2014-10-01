@@ -17,7 +17,7 @@ use yii\base\InvalidParamException;
  * For example:
  *
  * ```php
- * echo JqGridView::widget([
+ * echo JqGridWidget::widget([
  *   'gridSettings' => [
  *       'colNames' => ['Title', 'Author', 'Language'],
  *       'colModel' => [
@@ -42,7 +42,7 @@ use yii\base\InvalidParamException;
  * @author HimikLab
  * @package himiklab\jqgrid
  */
-class JqGridView extends Widget
+class JqGridWidget extends Widget
 {
     /** @var string $requestUrl */
     public $requestUrl = 'jqgrid';

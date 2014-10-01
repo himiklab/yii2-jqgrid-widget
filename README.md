@@ -40,9 +40,9 @@ public function actions()
 * In view:
 
 ```php
-use himiklab\jqgrid\JqGridView;
+use himiklab\jqgrid\JqGridWidget;
 
-<?= JqGridView::widget([
+<?= JqGridWidget::widget([
     'gridSettings' => [
         'colNames' => ['Title', 'Author', 'Language'],
         'colModel' => [
