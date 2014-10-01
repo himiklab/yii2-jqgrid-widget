@@ -13,6 +13,7 @@ use yii\helpers\Json;
 use yii\data\ActiveDataProvider;
 use yii\data\Pagination;
 use yii\data\Sort;
+use yii\web\Response;
 use yii\web\BadRequestHttpException;
 
 /**
@@ -237,7 +238,9 @@ class JqGridAction extends Action
             throw new BadRequestHttpException('Id param isn`t set');
         }
 
-        $model::findOne($requestData['id'])->delete();
+        foreach (explode(',', $requestData['id']) as $id) {
+            $model::findOne($id)->delete();
+        }
     }
 
     /**
