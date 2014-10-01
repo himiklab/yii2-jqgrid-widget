@@ -53,6 +53,9 @@ class JqGridView extends Widget
     /** @var bool $enableFilterToolbar */
     public $enableFilterToolbar = false;
 
+    /** @var bool $enableCellEdit */
+    public $enableCellEdit = false;
+
     /** @var array $gridSettings */
     public $gridSettings = [];
 
@@ -100,6 +103,10 @@ class JqGridView extends Widget
         $gridSettings['mtype'] = 'POST';
         if ($this->enablePager) {
             $gridSettings['pager'] = "#jqGrid-pager-{$widgetId}";
+        }
+        if ($this->enableCellEdit) {
+            $gridSettings['cellEdit'] = true;
+            $gridSettings['cellurl'] = $this->requestUrl . '?action=edit';
         }
 
         return Json::encode($gridSettings, YII_DEBUG ? JSON_PRETTY_PRINT : 0);
