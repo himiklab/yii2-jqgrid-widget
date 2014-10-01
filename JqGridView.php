@@ -91,7 +91,9 @@ class JqGridView extends Widget
         $widgetId = $this->id;
 
         echo "<table id='jqGrid-{$widgetId}'></table>" . PHP_EOL;
-        echo "<div id='jqGrid-pager-{$widgetId}'></div>" . PHP_EOL;
+        if ($this->enablePager) {
+            echo "<div id='jqGrid-pager-{$widgetId}'></div>" . PHP_EOL;
+        }
     }
 
     protected function processingGridSettings($gridSettings)
