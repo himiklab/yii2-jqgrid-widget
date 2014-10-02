@@ -252,8 +252,10 @@ class JqGridAction extends Action
     {
         $groupCondition = 'andWhere';
         if (isset($searchData['groupOp'])) {
-            foreach ($searchData['groups'] as $group) {
-                $this->addSearchOptionsRecursively($query, $group);
+            if (isset($searchData['groups'])) {
+                foreach ($searchData['groups'] as $group) {
+                    $this->addSearchOptionsRecursively($query, $group);
+                }
             }
 
             if ($searchData['groupOp'] === 'OR') {
