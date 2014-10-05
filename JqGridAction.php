@@ -13,7 +13,6 @@ use yii\helpers\Json;
 use yii\data\ActiveDataProvider;
 use yii\data\Pagination;
 use yii\data\Sort;
-use yii\web\Response;
 use yii\web\BadRequestHttpException;
 
 /**
