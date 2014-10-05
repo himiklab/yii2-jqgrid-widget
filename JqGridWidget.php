@@ -96,7 +96,7 @@ class JqGridWidget extends Widget
         }
     }
 
-    protected function processingGridSettings($gridSettings)
+    protected function processingGridSettings($gridUserSettings)
     {
         $widgetId = $this->id;
 
@@ -110,6 +110,7 @@ class JqGridWidget extends Widget
             $gridSettings['cellEdit'] = true;
             $gridSettings['cellurl'] = $this->requestUrl . '?action=edit';
         }
+        $gridSettings = array_merge($gridSettings, $gridUserSettings);
 
         return Json::encode($gridSettings, YII_DEBUG ? JSON_PRETTY_PRINT : 0);
     }
@@ -123,52 +124,52 @@ class JqGridWidget extends Widget
             'search' => false,
             'view' => false
         ];
-        foreach ($pagerUserSettings as $key => $value) {
-            if ($value === false) {
+        foreach ($pagerUserSettings as $optionName => $optionSettings) {
+            if ($optionSettings === false) {
                 continue;
-            } elseif ($value === true) {
-                $value = [];
+            } elseif ($optionSettings === true) {
+                $optionSettings = [];
             }
 
-            switch ($key) {
+            switch ($optionName) {
                 case 'edit':
-                    $value['url'] = $this->requestUrl . '?action=edit';
-                    $pagerOptions['edit'] = $value;
+                    $editSettings['url'] = $this->requestUrl . '?action=edit';
+                    $pagerOptions['edit'] = array_merge($editSettings, $optionSettings);
                     break;
                 case 'add':
-                    $value['url'] = $this->requestUrl . '?action=add';
-                    $pagerOptions['add'] = $value;
+                    $addSettings['url'] = $this->requestUrl . '?action=add';
+                    $pagerOptions['add'] = array_merge($addSettings, $optionSettings);
                     break;
                 case 'del':
-                    $value['url'] = $this->requestUrl . '?action=del';
-                    $pagerOptions['del'] = $value;
+                    $delSettings['url'] = $this->requestUrl . '?action=del';
+                    $pagerOptions['del'] = array_merge($delSettings, $optionSettings);
                     break;
                 case 'search':
-                    $pagerOptions['search'] = $value;
+                    $pagerOptions['search'] = $optionSettings;
                     break;
                 case 'view':
-                    $pagerOptions['view'] = $value;
+                    $pagerOptions['view'] = $optionSettings;
                     break;
                 default:
-                    throw new InvalidParamException("Invalid param $key in pager settings");
+                    throw new InvalidParamException("Invalid param `$optionName` in pager settings");
             }
         }
 
-        $options = [];
-        $values = [];
-        foreach ($pagerOptions as $key => $value) {
-            if ($value === false) {
-                $options[$key] = false;
-                $values[] = '{}';
+        $resultOptions = [];
+        $resultSettings = [];
+        foreach ($pagerOptions as $optionName => $optionSettings) {
+            if ($optionSettings === false) {
+                $resultOptions[$optionName] = false;
+                $resultSettings[] = '{}';
             } else {
-                $options[$key] = true;
-                $values[] = Json::encode($value, YII_DEBUG ? JSON_PRETTY_PRINT : 0);
+                $resultOptions[$optionName] = true;
+                $resultSettings[] = Json::encode($optionSettings, YII_DEBUG ? JSON_PRETTY_PRINT : 0);
             }
         }
-        $options = Json::encode($options, YII_DEBUG ? JSON_PRETTY_PRINT : 0);
+        $resultOptions = Json::encode($resultOptions, YII_DEBUG ? JSON_PRETTY_PRINT : 0);
 
-        array_unshift($values, $options);
-        return implode(',' . PHP_EOL, $values);
+        array_unshift($resultSettings, $resultOptions);
+        return implode(',' . PHP_EOL, $resultSettings);
     }
 
     protected function processingFilterToolbarSettings($filterToolbarSettings)
