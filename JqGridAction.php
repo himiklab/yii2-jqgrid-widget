@@ -49,12 +49,14 @@ class JqGridAction extends Action
 
     public function run()
     {
+        if (is_string($this->model)) {
+            $this->model = new $this->model;
+        }
+        $model = $this->model;
+
         if (!$getActionParam = Yii::$app->request->get('action')) {
             throw new BadRequestHttpException('GET param `action` isn`t set');
         }
-
-        /** @var \yii\db\ActiveRecord $model */
-        $model = $this->model;
 
         // add PK if it exist and not set to $this->columns
         $modelPK = $model::primaryKey();
@@ -94,11 +96,6 @@ class JqGridAction extends Action
      */
     protected function request($model, $requestData, $columns)
     {
-        if (is_string($model)) {
-            $model = new $model;
-        }
-
-        /** @var \yii\db\ActiveQuery $query */
         $query = $model::find();
         if (!empty($columns)) {
             $query->select = $columns;
@@ -109,12 +106,12 @@ class JqGridAction extends Action
             $searchData = [];
 
             // filter panel
-            foreach ($model->attributes() as $column) {
-                if (array_key_exists($column, $requestData)) {
+            foreach ($model->attributes() as $modelAttribute) {
+                if (array_key_exists($modelAttribute, $requestData)) {
                     $searchData['rules'][] = [
                         'op' => 'cn',
-                        'field' => $column,
-                        'data' => $requestData[$column]
+                        'field' => $modelAttribute,
+                        'data' => $requestData[$modelAttribute]
                     ];
                 }
             }
@@ -122,8 +119,10 @@ class JqGridAction extends Action
             // search panel
             if (isset($requestData['filters'])) {
                 if ($requestData['filters'] != '') {
+                    // advanced searching
                     $searchData = Json::decode($requestData['filters'], true);
                 } else {
+                    // single searching
                     $searchData['rules'][] = [
                         'op' => $requestData['searchOper'],
                         'field' => $requestData['searchField'],
@@ -170,10 +169,10 @@ class JqGridAction extends Action
         foreach ($dataProvider->getModels() as $record) {
             /** @var \yii\db\ActiveRecord $record */
             $response['rows'][$i]['id'] = $record->primaryKey;
-            foreach ($record->attributes() as $column) {
-                $columnValue = $record->$column;
-                if (!$record->isPrimaryKey([$column]) && $columnValue !== null) {
-                    $response['rows'][$i]['cell'][$column] = $columnValue;
+            foreach ($record->attributes() as $modelAttribute) {
+                $columnValue = $record->$modelAttribute;
+                if (!$record->isPrimaryKey([$modelAttribute]) && $columnValue !== null) {
+                    $response['rows'][$i]['cell'][$modelAttribute] = $columnValue;
                 }
             }
             ++$i;
@@ -191,16 +190,14 @@ class JqGridAction extends Action
         if (!isset($requestData['id'])) {
             throw new BadRequestHttpException('Id param isn`t set');
         }
+        $record = $model::findOne($requestData['id']);
 
-        /** @var \yii\db\ActiveRecord $query */
-        $query = $model::findOne($requestData['id']);
-
-        foreach ($query->attributes() as $column) {
-            if (isset($requestData[$column])) {
-                $query->$column = $requestData[$column];
+        foreach ($record->attributes() as $modelAttribute) {
+            if (isset($requestData[$modelAttribute])) {
+                $record->$modelAttribute = $requestData[$modelAttribute];
             }
         }
-        $query->save();
+        $record->save();
     }
 
     /**
@@ -213,13 +210,10 @@ class JqGridAction extends Action
         if (!isset($requestData['id'])) {
             throw new BadRequestHttpException('Id param isn`t set');
         }
-        if (is_string($model)) {
-            $model = new $model;
-        }
 
-        foreach ($model->attributes() as $column) {
-            if (isset($requestData[$column])) {
-                $model->$column = $requestData[$column];
+        foreach ($model->attributes() as $modelAttribute) {
+            if (isset($requestData[$modelAttribute])) {
+                $model->$modelAttribute = $requestData[$modelAttribute];
             }
         }
         $model->save();
