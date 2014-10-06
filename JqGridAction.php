@@ -259,6 +259,9 @@ class JqGridAction extends Action
         }
 
         foreach ($searchData['rules'] as $rule) {
+            if (!$this->model->hasAttribute($rule['field'])) {
+                throw new BadRequestHttpException('Unknown attribute');
+            }
             switch ($rule['op']) {
                 case 'eq':
                     $query->$groupCondition([$rule['field'] => $rule['data']]);
