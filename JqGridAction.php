@@ -269,6 +269,18 @@ class JqGridAction extends Action
                 case 'ne':
                     $query->$groupCondition(['<>', $rule['field'], $rule['data']]);
                     break;
+                case 'bw':
+                    $query->$groupCondition(['like', $rule['field'], "{$rule['data']}%", false]);
+                    break;
+                case 'bn':
+                    $query->$groupCondition(['not like', $rule['field'], "{$rule['data']}%", false]);
+                    break;
+                case 'ew':
+                    $query->$groupCondition(['like', $rule['field'], "%{$rule['data']}", false]);
+                    break;
+                case 'en':
+                    $query->$groupCondition(['not like', $rule['field'], "%{$rule['data']}", false]);
+                    break;
                 case 'cn':
                     $query->$groupCondition(['like', $rule['field'], $rule['data']]);
                     break;
