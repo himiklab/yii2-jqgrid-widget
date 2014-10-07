@@ -140,14 +140,12 @@ class JqGridAction extends Action
         $pagination->pageSize = $requestData['rows'];
 
         // sorting
-        $sort = false;
         if (isset($requestData['sidx']) && $requestData['sidx'] != ''
             && ($requestData['sord'] === 'asc' || $requestData['sord'] === 'desc')
         ) {
-            $sort = new Sort;
-            $sort->defaultOrder = [
-                $requestData['sidx'] => $requestData['sord'] === 'asc' ? SORT_ASC : SORT_DESC
-            ];
+            $sort = $this->processingSort($requestData);
+        } else {
+            $sort = false;
         }
 
         $dataProvider = new ActiveDataProvider(
@@ -307,5 +305,33 @@ class JqGridAction extends Action
                     throw new BadRequestHttpException('Unsupported value in `op` or `searchOper` param');
             }
         }
+    }
+
+    /**
+     * @param array $requestData
+     * @return Sort
+     */
+    protected function processingSort($requestData)
+    {
+        $sort = new Sort;
+        $sidxArray = explode(',', $requestData['sidx']);
+
+        if (count($sidxArray) > 1) {
+            // multi-column
+            foreach ($sidxArray as $sidx) {
+                if (preg_match('/(.+)\s(asc|desc)/', $sidx, $sidxMatch)) {
+                    $sort->defaultOrder[$sidxMatch[1]] =
+                        $sidxMatch[2] === 'asc' ? SORT_ASC : SORT_DESC;
+                } else {
+                    $sort->defaultOrder[trim($sidx)] =
+                        $requestData['sord'] === 'asc' ? SORT_ASC : SORT_DESC;
+                }
+            }
+        } else {
+            //single-column
+            $sort->defaultOrder[trim($requestData['sidx'])] =
+                $requestData['sord'] === 'asc' ? SORT_ASC : SORT_DESC;
+        }
+        return $sort;
     }
 }
