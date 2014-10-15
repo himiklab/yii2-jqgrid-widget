@@ -83,7 +83,7 @@ class JqGridAction extends Action
                 $this->del($model, Yii::$app->request->post());
                 break;
             default:
-                throw new BadRequestHttpException();
+                throw new BadRequestHttpException('Unsupported GET `action` param');
         }
     }
 
