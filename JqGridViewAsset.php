@@ -26,6 +26,9 @@ class JqGridViewAsset extends AssetBundle
     {
         parent::init();
         $jsLangSuffix = $this->getLanguageSuffix();
+        if ($jsLangSuffix === 'uk') {
+            $jsLangSuffix = 'ua';
+        }
 
         $this->js = [
             'js/minified/jquery.jqGrid.min.js',
