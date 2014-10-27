@@ -9,7 +9,7 @@ The preferred way to install this extension is through [composer](http://getcomp
 * Either run
 
 ```
-php composer.phar require "himiklab/yii2-jqgrid-widget" "*"
+php composer.phar require --prefer-dist "himiklab/yii2-jqgrid-widget" "*"
 ```
 
 or add
@@ -20,16 +20,16 @@ or add
 
 to the require section of your application's `composer.json` file.
 
-* Add action in the controller (optional):
+* Add action in the controller (optional), for example:
 
 ```php
-use himiklab\jqgrid\JqGridAction;
+use himiklab\jqgrid\actions\JqGridActiveAction;
 
 public function actions()
 {
     return [
         'jqgrid' => [
-            'class' => JqGridAction::className(),
+            'class' => JqGridActiveAction::className(),
             'model' => Page::className(),
             'columns' => ['title', 'author', 'language']
         ],
@@ -37,12 +37,13 @@ public function actions()
 }
 ```
 
-* In view:
+* View's example:
 
 ```php
 use himiklab\jqgrid\JqGridWidget;
 
 <?= JqGridWidget::widget([
+    'requestUrl' => 'admin/jqgrid',
     'gridSettings' => [
         'colNames' => ['Title', 'Author', 'Language'],
         'colModel' => [
