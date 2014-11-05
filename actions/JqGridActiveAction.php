@@ -135,15 +135,20 @@ class JqGridActiveAction extends Action
             $requestData['rows'] != 0 ? ceil($recordsTotalCount / $requestData['rows']) : 0;
         $response['records'] = $recordsTotalCount;
 
+        if (!empty($this->columns)) {
+            $attributes = $this->columns;
+        } else {
+            $attributes = $model->attributes();
+        }
         $i = 0;
         foreach ($dataProvider->getModels() as $record) {
             /** @var \yii\db\ActiveRecord $record */
-            $response['rows'][$i]['id'] = $record->primaryKey;
-            foreach ($record->attributes() as $modelAttribute) {
-                $columnValue = $record->$modelAttribute;
-                if (!$record->isPrimaryKey([$modelAttribute]) && $columnValue !== null) {
-                    $response['rows'][$i]['cell'][$modelAttribute] = $columnValue;
-                }
+            if ($record->primaryKey !== null) {
+                $response['rows'][$i]['id'] = $record->primaryKey;
+            }
+
+            foreach ($attributes as $modelAttribute) {
+                $response['rows'][$i]['cell'][$modelAttribute] = $record->$modelAttribute;
             }
             ++$i;
         }
