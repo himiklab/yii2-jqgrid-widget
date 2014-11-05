@@ -65,14 +65,18 @@ class JqGridWidget extends Widget
     /** @var array $filterToolbarSettings */
     public $filterToolbarSettings = [];
 
+    protected $jsonSettings;
+
     public function init()
     {
         parent::init();
         $view = $this->getView();
         $widgetId = $this->id;
-        $jsonGridSettings = $this->processingGridSettings($this->gridSettings);
 
-        $script = "jQuery(\"#jqGrid-{$widgetId}\").jqGrid({$jsonGridSettings})";
+        $this->jsonSettings =
+            (YII_DEBUG ? JSON_PRETTY_PRINT : 0) | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_NUMERIC_CHECK;
+
+        $script = "jQuery(\"#jqGrid-{$widgetId}\").jqGrid({$this->processingGridSettings($this->gridSettings)})";
         if ($this->enablePager) {
             $script .= PHP_EOL .
                 ".navGrid('#jqGrid-pager-{$widgetId}', {$this->processingPagerSettings($this->pagerSettings)})";
@@ -112,7 +116,7 @@ class JqGridWidget extends Widget
         }
         $gridSettings = array_merge($gridSettings, $gridUserSettings);
 
-        return Json::encode($gridSettings, YII_DEBUG ? JSON_PRETTY_PRINT : 0);
+        return Json::encode($gridSettings, $this->jsonSettings);
     }
 
     protected function processingPagerSettings($pagerUserSettings)
@@ -163,10 +167,10 @@ class JqGridWidget extends Widget
                 $resultSettings[] = '{}';
             } else {
                 $resultOptions[$optionName] = true;
-                $resultSettings[] = Json::encode($optionSettings, YII_DEBUG ? JSON_PRETTY_PRINT : 0);
+                $resultSettings[] = Json::encode($optionSettings, $this->jsonSettings);
             }
         }
-        $resultOptions = Json::encode($resultOptions, YII_DEBUG ? JSON_PRETTY_PRINT : 0);
+        $resultOptions = Json::encode($resultOptions, $this->jsonSettings);
 
         array_unshift($resultSettings, $resultOptions);
         return implode(',' . PHP_EOL, $resultSettings);
@@ -174,6 +178,6 @@ class JqGridWidget extends Widget
 
     protected function processingFilterToolbarSettings($filterToolbarSettings)
     {
-        return Json::encode($filterToolbarSettings, YII_DEBUG ? JSON_PRETTY_PRINT : 0);
+        return Json::encode($filterToolbarSettings, $this->jsonSettings);
     }
 }

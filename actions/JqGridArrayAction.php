@@ -109,7 +109,10 @@ class JqGridArrayAction extends Action
             }
             ++$i;
         }
-        return Json::encode($response, YII_DEBUG ? JSON_PRETTY_PRINT : 0);
+        return Json::encode(
+            $response,
+            (YII_DEBUG ? JSON_PRETTY_PRINT : 0) | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_NUMERIC_CHECK
+        );
     }
 
     /**
