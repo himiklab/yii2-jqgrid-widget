@@ -83,7 +83,7 @@ class JqGridWidget extends Widget
         }
 
         $view->registerJs($script, $view::POS_READY);
-        JqGridViewAsset::register($view);
+        JqGridAsset::register($view);
     }
 
     public function run()

@@ -10,7 +10,7 @@ namespace himiklab\jqgrid;
 use Yii;
 use yii\web\AssetBundle;
 
-class JqGridViewAsset extends AssetBundle
+class JqGridAsset extends AssetBundle
 {
     public $sourcePath = '@bower/jqgrid';
 

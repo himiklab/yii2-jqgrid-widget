@@ -103,35 +103,7 @@ class JqGridActiveAction extends Action
 
         // search
         if (isset($requestData['_search']) && $requestData['_search'] === 'true') {
-            $searchData = [];
-
-            // filter panel
-            foreach ($model->attributes() as $modelAttribute) {
-                if (array_key_exists($modelAttribute, $requestData)) {
-                    $searchData['rules'][] = [
-                        'op' => 'cn',
-                        'field' => $modelAttribute,
-                        'data' => $requestData[$modelAttribute]
-                    ];
-                }
-            }
-
-            // search panel
-            if (isset($requestData['filters'])) {
-                if ($requestData['filters'] != '') {
-                    // advanced searching
-                    $searchData = Json::decode($requestData['filters'], true);
-                } else {
-                    // single searching
-                    $searchData['rules'][] = [
-                        'op' => $requestData['searchOper'],
-                        'field' => $requestData['searchField'],
-                        'data' => $requestData['searchString']
-                    ];
-                }
-            }
-
-            $this->addSearchOptionsRecursively($query, $searchData);
+            $this->processingSearch($model, $query, $requestData);
         }
 
         // pagination
@@ -235,6 +207,73 @@ class JqGridActiveAction extends Action
     }
 
     /**
+     * @param array $requestData
+     * @return Sort
+     */
+    protected function processingSort($requestData)
+    {
+        $sort = new Sort;
+        $sidxArray = explode(',', $requestData['sidx']);
+
+        if (count($sidxArray) > 1) {
+            // multi-column
+            foreach ($sidxArray as $sidx) {
+                if (preg_match('/(.+)\s(asc|desc)/', $sidx, $sidxMatch)) {
+                    $sort->defaultOrder[$sidxMatch[1]] =
+                        $sidxMatch[2] === 'asc' ? SORT_ASC : SORT_DESC;
+                } else {
+                    $sort->defaultOrder[trim($sidx)] =
+                        $requestData['sord'] === 'asc' ? SORT_ASC : SORT_DESC;
+                }
+            }
+        } else {
+            //single-column
+            $sort->defaultOrder[trim($requestData['sidx'])] =
+                $requestData['sord'] === 'asc' ? SORT_ASC : SORT_DESC;
+        }
+        return $sort;
+    }
+
+    /**
+     * @param \yii\db\ActiveRecord $model
+     * @param \yii\db\ActiveQuery $query
+     * @param array $requestData
+     * @throws BadRequestHttpException
+     */
+    protected function processingSearch($model, $query, $requestData)
+    {
+        $searchData = [];
+
+        // filter panel
+        foreach ($model->attributes() as $modelAttribute) {
+            if (array_key_exists($modelAttribute, $requestData)) {
+                $searchData['rules'][] = [
+                    'op' => 'cn',
+                    'field' => $modelAttribute,
+                    'data' => $requestData[$modelAttribute]
+                ];
+            }
+        }
+
+        // search panel
+        if (isset($requestData['filters'])) {
+            if ($requestData['filters'] != '') {
+                // advanced searching
+                $searchData = Json::decode($requestData['filters'], true);
+            } else {
+                // single searching
+                $searchData['rules'][] = [
+                    'op' => $requestData['searchOper'],
+                    'field' => $requestData['searchField'],
+                    'data' => $requestData['searchString']
+                ];
+            }
+        }
+
+        $this->addSearchOptionsRecursively($query, $searchData);
+    }
+
+    /**
      * @param \yii\db\ActiveQuery $query
      * @param array $searchData
      * @throws BadRequestHttpException
@@ -305,33 +344,5 @@ class JqGridActiveAction extends Action
                     throw new BadRequestHttpException('Unsupported value in `op` or `searchOper` param');
             }
         }
-    }
-
-    /**
-     * @param array $requestData
-     * @return Sort
-     */
-    protected function processingSort($requestData)
-    {
-        $sort = new Sort;
-        $sidxArray = explode(',', $requestData['sidx']);
-
-        if (count($sidxArray) > 1) {
-            // multi-column
-            foreach ($sidxArray as $sidx) {
-                if (preg_match('/(.+)\s(asc|desc)/', $sidx, $sidxMatch)) {
-                    $sort->defaultOrder[$sidxMatch[1]] =
-                        $sidxMatch[2] === 'asc' ? SORT_ASC : SORT_DESC;
-                } else {
-                    $sort->defaultOrder[trim($sidx)] =
-                        $requestData['sord'] === 'asc' ? SORT_ASC : SORT_DESC;
-                }
-            }
-        } else {
-            //single-column
-            $sort->defaultOrder[trim($requestData['sidx'])] =
-                $requestData['sord'] === 'asc' ? SORT_ASC : SORT_DESC;
-        }
-        return $sort;
     }
 }
