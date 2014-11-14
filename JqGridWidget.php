@@ -44,6 +44,9 @@ use yii\base\InvalidParamException;
  */
 class JqGridWidget extends Widget
 {
+    const REQUEST_METHOD_POST = 'POST';
+    const REQUEST_METHOD_GET = 'GET';
+
     /** @var string $requestUrl */
     public $requestUrl = 'jqgrid';
 
@@ -64,6 +67,9 @@ class JqGridWidget extends Widget
 
     /** @var array $filterToolbarSettings */
     public $filterToolbarSettings = [];
+
+    /** @var self::REQUEST_METHOD_POST|self::REQUEST_METHOD_GET $requestMethod */
+    public $requestMethod = self::REQUEST_METHOD_POST;
 
     protected $jsonSettings;
 
@@ -106,7 +112,7 @@ class JqGridWidget extends Widget
 
         $gridSettings['url'] = $this->requestUrl . '?action=request';
         $gridSettings['datatype'] = 'json';
-        $gridSettings['mtype'] = 'POST';
+        $gridSettings['mtype'] = $this->requestMethod === self::REQUEST_METHOD_POST ? 'POST' : 'GET';
         if ($this->enablePager) {
             $gridSettings['pager'] = "#jqGrid-pager-{$widgetId}";
         }

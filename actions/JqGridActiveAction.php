@@ -34,10 +34,12 @@ use yii\web\BadRequestHttpException;
  * ```
  *
  * @author HimikLab
- * @package himiklab\jqgrid
+ * @package himiklab\jqgrid\actions
  */
 class JqGridActiveAction extends Action
 {
+    use JqGridActionTrait;
+
     /** @var \yii\db\ActiveRecord $model */
     public $model;
 
@@ -67,20 +69,16 @@ class JqGridActiveAction extends Action
         switch ($getActionParam) {
             case 'request':
                 header('Content-Type: application/json; charset=utf-8');
-                echo $this->request(
-                    $model,
-                    Yii::$app->request->post(),
-                    $this->columns
-                );
+                echo $this->request($model, $this->getRequestData(), $this->columns);
                 break;
             case 'edit':
-                $this->edit($model, Yii::$app->request->post());
+                $this->edit($model, $this->getRequestData());
                 break;
             case 'add':
-                $this->add($model, Yii::$app->request->post());
+                $this->add($model, $this->getRequestData());
                 break;
             case 'del':
-                $this->del($model, Yii::$app->request->post());
+                $this->del($model, $this->getRequestData());
                 break;
             default:
                 throw new BadRequestHttpException('Unsupported GET `action` param');

@@ -35,10 +35,12 @@ use yii\base\InvalidValueException;
  * ```
  *
  * @author HimikLab
- * @package himiklab\jqgrid
+ * @package himiklab\jqgrid\actions
  */
 class JqGridArrayAction extends Action
 {
+    use JqGridActionTrait;
+
     /** @var array $models ArrayDataProvider's models property */
     public $models;
 
@@ -53,7 +55,7 @@ class JqGridArrayAction extends Action
                 header('Content-Type: application/json; charset=utf-8');
                 echo $this->request(
                     $this->models,
-                    Yii::$app->request->post()
+                    $this->getRequestData()
                 );
                 break;
             default:
