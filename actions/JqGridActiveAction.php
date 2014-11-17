@@ -11,13 +11,11 @@ use Yii;
 use yii\base\Action;
 use yii\helpers\Json;
 use yii\data\ActiveDataProvider;
-use yii\data\Pagination;
-use yii\data\Sort;
 use yii\web\BadRequestHttpException;
 use yii\base\InvalidConfigException;
 
 /**
- * ActiveDataProvider based action for jqGrid widget
+ * Action for jqGrid widget based on ActiveDataProvider.
  *
  * For example:
  *
@@ -41,7 +39,7 @@ class JqGridActiveAction extends Action
 {
     use JqGridActionTrait;
 
-    /** @var \yii\db\ActiveRecord $model */
+    /** @var string|\yii\db\ActiveRecord $model */
     public $model;
 
     /**
@@ -72,60 +70,47 @@ class JqGridActiveAction extends Action
         switch ($getActionParam) {
             case 'request':
                 header('Content-Type: application/json; charset=utf-8');
-                echo $this->request($model, $this->getRequestData(), $this->columns);
+                echo $this->requestAction($this->getRequestData(), $this->columns);
                 break;
             case 'edit':
-                $this->edit($model, $this->getRequestData());
+                $this->editAction($this->getRequestData());
                 break;
             case 'add':
-                $this->add($model, $this->getRequestData());
+                $this->addAction($this->getRequestData());
                 break;
             case 'del':
-                $this->del($model, $this->getRequestData());
+                $this->delAction($this->getRequestData());
                 break;
             default:
-                throw new BadRequestHttpException('Unsupported GET `action` param');
+                throw new BadRequestHttpException('Unsupported GET `action` param.');
         }
     }
 
     /**
-     * @param \yii\db\ActiveRecord $model
      * @param array $requestData
      * @param array $columns
-     * @return string
+     * @return string JSON answer
      * @throws BadRequestHttpException
      */
-    protected function request($model, $requestData, $columns)
+    protected function requestAction($requestData, $columns)
     {
+        $model = $this->model;
         $query = $model::find();
+
         if (!empty($columns)) {
             $query->select = $columns;
         }
 
         // search
         if (isset($requestData['_search']) && $requestData['_search'] === 'true') {
-            $this->processingSearch($model, $query, $requestData);
-        }
-
-        // pagination
-        $pagination = new Pagination;
-        $pagination->page = $requestData['page'] - 1; // ActiveDataProvider is zero-based, jqGrid not
-        $pagination->pageSize = $requestData['rows'];
-
-        // sorting
-        if (isset($requestData['sidx']) && $requestData['sidx'] != ''
-            && ($requestData['sord'] === 'asc' || $requestData['sord'] === 'desc')
-        ) {
-            $sort = $this->processingSort($requestData);
-        } else {
-            $sort = false;
+            $this->prepareSearch($query, $requestData);
         }
 
         $dataProvider = new ActiveDataProvider(
             [
                 'query' => $query,
-                'pagination' => $pagination,
-                'sort' => $sort
+                'pagination' => $this->getPagination($requestData),
+                'sort' => $this->getSort($requestData)
             ]
         );
         $recordsTotalCount = $dataProvider->totalCount;
@@ -153,6 +138,7 @@ class JqGridActiveAction extends Action
             }
             ++$i;
         }
+
         return Json::encode(
             $response,
             (YII_DEBUG ? JSON_PRETTY_PRINT : 0) | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_NUMERIC_CHECK
@@ -160,17 +146,19 @@ class JqGridActiveAction extends Action
     }
 
     /**
-     * @param \yii\db\ActiveRecord $model
      * @param array $requestData
      * @throws BadRequestHttpException
      */
-    protected function edit($model, $requestData)
+    protected function editAction($requestData)
     {
-        if (!isset($requestData['id'])) {
-            throw new BadRequestHttpException('Id param isn`t set');
-        }
-        $record = $model::findOne($requestData['id']);
+        /** @var \yii\db\ActiveRecord $model */
+        $model = $this->model;
 
+        if (!isset($requestData['id'])) {
+            throw new BadRequestHttpException('Id param isn\'t set.');
+        }
+
+        $record = $model::findOne($requestData['id']);
         foreach ($record->attributes() as $modelAttribute) {
             if (isset($requestData[$modelAttribute])) {
                 $record->$modelAttribute = $requestData[$modelAttribute];
@@ -180,14 +168,16 @@ class JqGridActiveAction extends Action
     }
 
     /**
-     * @param \yii\db\ActiveRecord $model
      * @param array $requestData
      * @throws BadRequestHttpException
      */
-    protected function add($model, $requestData)
+    protected function addAction($requestData)
     {
+        /** @var \yii\db\ActiveRecord $model */
+        $model = $this->model;
+
         if (!isset($requestData['id'])) {
-            throw new BadRequestHttpException('Id param isn`t set');
+            throw new BadRequestHttpException('Id param isn\'t set.');
         }
 
         foreach ($model->attributes() as $modelAttribute) {
@@ -199,15 +189,17 @@ class JqGridActiveAction extends Action
     }
 
     /**
-     * @param \yii\db\ActiveRecord $model
      * @param array $requestData
      * @throws BadRequestHttpException
      * @throws \Exception
      */
-    protected function del($model, $requestData)
+    protected function delAction($requestData)
     {
+        /** @var \yii\db\ActiveRecord $model */
+        $model = $this->model;
+
         if (!isset($requestData['id'])) {
-            throw new BadRequestHttpException('Id param isn`t set');
+            throw new BadRequestHttpException('Id param isn\'t set.');
         }
 
         foreach (explode(',', $requestData['id']) as $id) {
@@ -216,41 +208,14 @@ class JqGridActiveAction extends Action
     }
 
     /**
-     * @param array $requestData
-     * @return Sort
-     */
-    protected function processingSort($requestData)
-    {
-        $sort = new Sort;
-        $sidxArray = explode(',', $requestData['sidx']);
-
-        if (count($sidxArray) > 1) {
-            // multi-column
-            foreach ($sidxArray as $sidx) {
-                if (preg_match('/(.+)\s(asc|desc)/', $sidx, $sidxMatch)) {
-                    $sort->defaultOrder[$sidxMatch[1]] =
-                        $sidxMatch[2] === 'asc' ? SORT_ASC : SORT_DESC;
-                } else {
-                    $sort->defaultOrder[trim($sidx)] =
-                        $requestData['sord'] === 'asc' ? SORT_ASC : SORT_DESC;
-                }
-            }
-        } else {
-            //single-column
-            $sort->defaultOrder[trim($requestData['sidx'])] =
-                $requestData['sord'] === 'asc' ? SORT_ASC : SORT_DESC;
-        }
-        return $sort;
-    }
-
-    /**
-     * @param \yii\db\ActiveRecord $model
      * @param \yii\db\ActiveQuery $query
      * @param array $requestData
      * @throws BadRequestHttpException
      */
-    protected function processingSearch($model, $query, $requestData)
+    protected function prepareSearch($query, $requestData)
     {
+        /** @var \yii\db\ActiveRecord $model */
+        $model = $this->model;
         $searchData = [];
 
         // filter panel
@@ -304,8 +269,10 @@ class JqGridActiveAction extends Action
             }
         }
 
+        /** @var \yii\db\ActiveRecord $model */
+        $model = $this->model;
         foreach ($searchData['rules'] as $rule) {
-            if (!$this->model->hasAttribute($rule['field'])) {
+            if (!$model->hasAttribute($rule['field'])) {
                 throw new BadRequestHttpException('Unknown attribute');
             }
             switch ($rule['op']) {
