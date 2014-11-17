@@ -14,6 +14,7 @@ use yii\data\ActiveDataProvider;
 use yii\data\Pagination;
 use yii\data\Sort;
 use yii\web\BadRequestHttpException;
+use yii\base\InvalidConfigException;
 
 /**
  * ActiveDataProvider based action for jqGrid widget
@@ -51,16 +52,18 @@ class JqGridActiveAction extends Action
 
     public function run()
     {
+        if (!is_subclass_of($this->model, '\yii\db\ActiveRecord')) {
+            throw new InvalidConfigException('The `model` param must be object or class extends \yii\db\ActiveRecord.');
+        }
         if (is_string($this->model)) {
             $this->model = new $this->model;
         }
-        $model = $this->model;
-
         if (!$getActionParam = Yii::$app->request->get('action')) {
-            throw new BadRequestHttpException('GET param `action` isn`t set');
+            throw new BadRequestHttpException('GET param `action` isn\'t set.');
         }
 
         // add PK if it exist and not set to $this->columns
+        $model = $this->model;
         $modelPK = $model::primaryKey();
         if (isset($modelPK[0]) && !empty($this->columns) && !array_search($modelPK[0], $this->columns)) {
             $this->columns[] = $modelPK[0];
