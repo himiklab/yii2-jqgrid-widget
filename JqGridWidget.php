@@ -7,9 +7,10 @@
 
 namespace himiklab\jqgrid;
 
+use yii\base\InvalidParamException;
 use yii\base\Widget;
 use yii\helpers\Json;
-use yii\base\InvalidParamException;
+use yii\web\JsExpression;
 
 /**
  * jqGrid widget for Yii2
@@ -59,6 +60,9 @@ class JqGridWidget extends Widget
     /** @var bool $enableCellEdit */
     public $enableCellEdit = false;
 
+    /** @var bool $enableColumnChooser */
+    public $enableColumnChooser = false;
+
     /** @var array $gridSettings */
     public $gridSettings = [];
 
@@ -90,6 +94,19 @@ class JqGridWidget extends Widget
         if ($this->enableFilterToolbar) {
             $script .= PHP_EOL .
                 ".filterToolbar({$this->processingFilterToolbarSettings($this->filterToolbarSettings)})";
+        }
+
+        if ($this->enableColumnChooser) {
+            $buttonOptions = [
+                'caption' => '',
+                'title' => new JsExpression('jQuery.jgrid.col.caption'),
+                'buttonicon' => 'ui-icon-calculator',
+                'onClickButton' => new JsExpression('function(){jQuery(this).jqGrid(\'columnChooser\');}')
+            ];
+            $buttonOptions = Json::encode($buttonOptions, $this->jsonSettings);
+            $script .= PHP_EOL . ".navButtonAdd('#jqGrid-pager-{$widgetId}', {$buttonOptions})";
+
+            MultiSelectAsset::register($view);
         }
 
         $view->registerJs($script, $view::POS_READY);
