@@ -48,34 +48,34 @@ class JqGridWidget extends Widget
     const REQUEST_METHOD_POST = 'POST';
     const REQUEST_METHOD_GET = 'GET';
 
-    /** @var string $requestUrl */
+    /** @var string */
     public $requestUrl = 'jqgrid';
 
-    /** @var bool $enablePager */
+    /** @var bool */
     public $enablePager = true;
 
-    /** @var bool $enableFilterToolbar */
-    public $enableFilterToolbar = false;
-
-    /** @var bool $enableCellEdit */
+    /** @var bool */
     public $enableCellEdit = false;
 
-    /** @var bool $enableColumnChooser */
+    /** @var bool */
     public $enableColumnChooser = false;
 
-    /** @var bool $enableXMLExport */
+    /** @var bool */
     public $enableXMLExport = false;
 
-    /** @var array $gridSettings */
-    public $gridSettings = [];
+    /** @var bool */
+    public $enableFilterToolbar = false;
 
-    /** @var array $pagerSettings */
-    public $pagerSettings = [];
-
-    /** @var array $filterToolbarSettings */
+    /** @var array */
     public $filterToolbarSettings = [];
 
-    /** @var self::REQUEST_METHOD_POST|self::REQUEST_METHOD_GET $requestMethod */
+    /** @var array */
+    public $gridSettings = [];
+
+    /** @var array */
+    public $pagerSettings = [];
+
+    /** @var self::REQUEST_METHOD_POST|self::REQUEST_METHOD_GET */
     public $requestMethod = self::REQUEST_METHOD_POST;
 
     protected $jsonSettings;
@@ -89,14 +89,14 @@ class JqGridWidget extends Widget
         $this->jsonSettings =
             (YII_DEBUG ? JSON_PRETTY_PRINT : 0) | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_NUMERIC_CHECK;
 
-        $script = "jQuery(\"#jqGrid-{$widgetId}\").jqGrid({$this->processingGridSettings($this->gridSettings)})";
+        $script = "jQuery(\"#jqGrid-{$widgetId}\").jqGrid({$this->prepareGridSettings($this->gridSettings)})";
         if ($this->enablePager) {
             $script .= PHP_EOL .
-                ".navGrid('#jqGrid-pager-{$widgetId}', {$this->processingPagerSettings($this->pagerSettings)})";
+                ".navGrid('#jqGrid-pager-{$widgetId}', {$this->preparePagerSettings($this->pagerSettings)})";
         }
         if ($this->enableFilterToolbar) {
             $script .= PHP_EOL .
-                ".filterToolbar({$this->processingFilterToolbarSettings($this->filterToolbarSettings)})";
+                ".filterToolbar({$this->prepareToolbarSettings($this->filterToolbarSettings)})";
         }
 
         if ($this->enableColumnChooser) {
@@ -137,7 +137,7 @@ class JqGridWidget extends Widget
         }
     }
 
-    protected function processingGridSettings($gridUserSettings)
+    protected function prepareGridSettings($gridUserSettings)
     {
         $widgetId = $this->id;
 
@@ -156,7 +156,7 @@ class JqGridWidget extends Widget
         return Json::encode($gridSettings, $this->jsonSettings);
     }
 
-    protected function processingPagerSettings($pagerUserSettings)
+    protected function preparePagerSettings($pagerUserSettings)
     {
         $pagerOptions = [
             'edit' => false,
@@ -213,7 +213,7 @@ class JqGridWidget extends Widget
         return implode(',' . PHP_EOL, $resultSettings);
     }
 
-    protected function processingFilterToolbarSettings($filterToolbarSettings)
+    protected function prepareToolbarSettings($filterToolbarSettings)
     {
         return Json::encode($filterToolbarSettings, $this->jsonSettings);
     }
