@@ -63,6 +63,9 @@ class JqGridWidget extends Widget
     /** @var bool $enableColumnChooser */
     public $enableColumnChooser = false;
 
+    /** @var bool $enableXMLExport */
+    public $enableXMLExport = false;
+
     /** @var array $gridSettings */
     public $gridSettings = [];
 
@@ -105,12 +108,23 @@ class JqGridWidget extends Widget
             ];
             $buttonOptions = Json::encode($buttonOptions, $this->jsonSettings);
             $script .= PHP_EOL . ".navButtonAdd('#jqGrid-pager-{$widgetId}', {$buttonOptions})";
+        }
 
-            MultiSelectAsset::register($view);
+        if ($this->enableXMLExport) {
+            $buttonOptions = [
+                'caption' => '',
+                'title' => 'Export to Excel XML',
+                'buttonicon' => 'ui-icon-document',
+                'onClickButton' => new JsExpression(
+                    "function(){jQuery.jgrid.XMLExport('{$widgetId}', 'ExcelXML.xml');}"
+                )
+            ];
+            $buttonOptions = Json::encode($buttonOptions, $this->jsonSettings);
+            $script .= PHP_EOL . ".navButtonAdd('#jqGrid-pager-{$widgetId}', {$buttonOptions})";
         }
 
         $view->registerJs($script, $view::POS_READY);
-        JqGridAsset::register($view);
+        WidgetAsset::register($view);
     }
 
     public function run()

@@ -18,10 +18,6 @@ class JqGridAsset extends AssetBundle
         'css/ui.jqgrid.css'
     ];
 
-    public $depends = [
-        'yii\jui\JuiAsset',
-    ];
-
     public function init()
     {
         parent::init();

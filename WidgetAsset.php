@@ -10,12 +10,13 @@ namespace himiklab\jqgrid;
 use Yii;
 use yii\web\AssetBundle;
 
-class MultiSelectAsset extends AssetBundle
+class WidgetAsset extends AssetBundle
 {
     public $sourcePath = '@vendor/himiklab/yii2-jqgrid-widget/assets';
 
     public $depends = [
         'yii\jui\JuiAsset',
+        'himiklab\jqgrid\JqGridAsset'
     ];
 
     public $css = [
@@ -29,7 +30,8 @@ class MultiSelectAsset extends AssetBundle
 
         $this->js = [
             'js/ui.multiselect.js',
-            "js/locale/ui-multiselect-{$jsLangSuffix}.js"
+            "js/locale/ui-multiselect-{$jsLangSuffix}.js",
+            'js/export.xml.js'
         ];
     }
 
