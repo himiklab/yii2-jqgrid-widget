@@ -36,6 +36,7 @@ $.widget("ui.multiselect", {
 		show: 'slideDown',
 		hide: 'slideUp',
 		dividerLocation: 0.6,
+		availableFirst: false,
 		nodeComparator: function(node1,node2) {
 			var text1 = node1.text(),
 			    text2 = node2.text();
@@ -48,7 +49,7 @@ $.widget("ui.multiselect", {
 		this.container = $('<div class="ui-multiselect ui-helper-clearfix ui-widget"></div>').insertAfter(this.element);
 		this.count = 0; // number of currently selected options
 		this.selectedContainer = $('<div class="selected"></div>').appendTo(this.container);
-		this.availableContainer = $('<div class="available"></div>').appendTo(this.container);
+		this.availableContainer = $('<div class="available"></div>')[this.options.availableFirst?'prependTo': 'appendTo'](this.container);
 		this.selectedActions = $('<div class="actions ui-widget-header ui-helper-clearfix"><span class="count">0 '+$.ui.multiselect.locale.itemsCount+'</span><a href="#" class="remove-all">'+$.ui.multiselect.locale.removeAll+'</a></div>').appendTo(this.selectedContainer);
 		this.availableActions = $('<div class="actions ui-widget-header ui-helper-clearfix"><input type="text" class="search empty ui-widget-content ui-corner-all"/><a href="#" class="add-all">'+$.ui.multiselect.locale.addAll+'</a></div>').appendTo(this.availableContainer);
 		this.selectedList = $('<ul class="selected connected-list"><li class="ui-helper-hidden-accessible"></li></ul>').bind('selectstart', function(){return false;}).appendTo(this.selectedContainer);
@@ -157,6 +158,7 @@ $.widget("ui.multiselect", {
 		that._filter.apply(this.availableContainer.find('input.search'), [that.availableList]);
   },
 	_updateCount: function() {
+		this.element.trigger('change');
 		this.selectedContainer.find('span.count').text(this.count+" "+$.ui.multiselect.locale.itemsCount);
 	},
 	_getOptionNode: function(option) {
@@ -257,8 +259,12 @@ $.widget("ui.multiselect", {
 	},
 	_registerDoubleClickEvents: function(elements) {
 		if (!this.options.doubleClickable) return;
-		elements.dblclick(function() {
-			elements.find('a.action').click();
+		elements.dblclick(function(ev) {
+			if ($(ev.target).closest('.action').length === 0) {
+				// This may be triggered with rapid clicks on actions as well. In that
+				// case don't trigger an additional click.
+				elements.find('a.action').click();
+			}
 		});
 	},
 	_registerHoverEvents: function(elements) {

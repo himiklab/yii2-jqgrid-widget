@@ -7,6 +7,7 @@
 
 namespace himiklab\jqgrid;
 
+use Yii;
 use yii\web\AssetBundle;
 
 class MultiSelectAsset extends AssetBundle
@@ -21,7 +22,30 @@ class MultiSelectAsset extends AssetBundle
         'css/ui.multiselect.css'
     ];
 
-    public $js = [
-        'js/ui.multiselect.js'
-    ];
+    public function init()
+    {
+        parent::init();
+        $jsLangSuffix = $this->getLanguageSuffix();
+
+        $this->js = [
+            'js/ui.multiselect.js',
+            "js/locale/ui-multiselect-{$jsLangSuffix}.js"
+        ];
+    }
+
+    protected function getLanguageSuffix()
+    {
+        $currentAppLanguage = Yii::$app->language;
+        $langsExceptions = ['pt-br'];
+
+        if (strpos($currentAppLanguage, '-') === false) {
+            return $currentAppLanguage;
+        }
+
+        if (in_array($currentAppLanguage, $langsExceptions)) {
+            return $currentAppLanguage;
+        } else {
+            return substr($currentAppLanguage, 0, strpos($currentAppLanguage, '-'));
+        }
+    }
 }
