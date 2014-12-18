@@ -222,7 +222,7 @@ class JqGridActiveAction extends Action
         foreach ($model->attributes() as $modelAttribute) {
             if (array_key_exists($modelAttribute, $requestData)) {
                 $searchData['rules'][] = [
-                    'op' => 'eq',
+                    'op' => 'bw',
                     'field' => $modelAttribute,
                     'data' => $requestData[$modelAttribute]
                 ];
