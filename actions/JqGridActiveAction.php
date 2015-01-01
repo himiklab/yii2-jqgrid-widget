@@ -9,10 +9,10 @@ namespace himiklab\jqgrid\actions;
 
 use Yii;
 use yii\base\Action;
-use yii\helpers\Json;
-use yii\data\ActiveDataProvider;
-use yii\web\BadRequestHttpException;
 use yii\base\InvalidConfigException;
+use yii\data\ActiveDataProvider;
+use yii\helpers\Json;
+use yii\web\BadRequestHttpException;
 
 /**
  * Action for jqGrid widget based on ActiveDataProvider.
@@ -26,7 +26,9 @@ use yii\base\InvalidConfigException;
  *       'jqgrid' => [
  *           'class' => JqGridActiveAction::className(),
  *           'model' => Page::className(),
- *           'columns' => ['title', 'author', 'language']
+ *           'scope' => function ($query) {
+ *               $query->select(['title', 'author'], 'language');
+ *           },
  *       ],
  *  ];
  * }
@@ -47,6 +49,9 @@ class JqGridActiveAction extends Action
      * This is used to construct the SELECT clause in a SQL statement. If not set, it means selecting all columns.
      */
     public $columns = [];
+
+    /** @var callable */
+    public $scope;
 
     public function run()
     {
@@ -70,7 +75,7 @@ class JqGridActiveAction extends Action
         switch ($getActionParam) {
             case 'request':
                 header('Content-Type: application/json; charset=utf-8');
-                echo $this->requestAction($this->getRequestData(), $this->columns);
+                echo $this->requestAction($this->getRequestData());
                 break;
             case 'edit':
                 $this->editAction($this->getRequestData());
@@ -88,17 +93,16 @@ class JqGridActiveAction extends Action
 
     /**
      * @param array $requestData
-     * @param array $columns
      * @return string JSON answer
      * @throws BadRequestHttpException
      */
-    protected function requestAction($requestData, $columns)
+    protected function requestAction($requestData)
     {
         $model = $this->model;
         $query = $model::find();
 
-        if (!empty($columns)) {
-            $query->select = $columns;
+        if (is_callable($this->scope)) {
+            call_user_func($this->scope, $query);
         }
 
         // search
@@ -126,6 +130,7 @@ class JqGridActiveAction extends Action
         } else {
             $attributes = $model->attributes();
         }
+
         $i = 0;
         foreach ($dataProvider->getModels() as $record) {
             /** @var \yii\db\ActiveRecord $record */

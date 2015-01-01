@@ -32,6 +32,10 @@ public function actions()
             'class' => JqGridActiveAction::className(),
             'model' => Page::className(),
             'columns' => ['title', 'author', 'language']
+            'scope' => function ($query) {
+                /** @var \yii\db\ActiveQuery $query */
+                $query->select(['title', 'author', 'language']);
+            },
         ],
     ];
 }
@@ -41,9 +45,10 @@ public function actions()
 
 ```php
 use himiklab\jqgrid\JqGridWidget;
+use yii\helpers\Url;
 
 <?= JqGridWidget::widget([
-    'requestUrl' => 'admin/jqgrid',
+    'requestUrl' => Url::toRoute('jqgrid'),
     'gridSettings' => [
         'colNames' => ['Title', 'Author', 'Language'],
         'colModel' => [
@@ -61,6 +66,6 @@ use himiklab\jqgrid\JqGridWidget;
         'del' => true,
         'search' => ['multipleSearch' => true]
     ],
-    'enableFilterToolbar' => true
-]); ?>
+    'enableFilterToolbar' => true,
+]) ?>
 ```
