@@ -277,8 +277,8 @@ class JqGridActiveAction extends Action
         /** @var \yii\db\ActiveRecord $model */
         $model = $this->model;
         foreach ($searchData['rules'] as $rule) {
-            if (!$model->hasAttribute($rule['field'])) {
-                throw new BadRequestHttpException('Unknown attribute');
+            if (!$model->isAttributeSafe($rule['field'])) {
+                throw new BadRequestHttpException('Unsafe attribute.');
             }
             switch ($rule['op']) {
                 case 'eq':
