@@ -13,7 +13,7 @@ use yii\helpers\Json;
 use yii\web\JsExpression;
 
 /**
- * jqGrid widget for Yii2
+ * grid.js widget for Yii2
  *
  * For example:
  *
@@ -39,7 +39,7 @@ use yii\web\JsExpression;
  * ]);
  * ```
  *
- * @see http://www.trirand.com/jqgridwiki/doku.php
+ * @see https://openpsa.github.io/grid.js/
  * @author HimikLab
  * @package himiklab\jqgrid
  */

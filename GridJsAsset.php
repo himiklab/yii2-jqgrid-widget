@@ -10,39 +10,42 @@ namespace himiklab\jqgrid;
 use Yii;
 use yii\web\AssetBundle;
 
-class JqGridAsset extends AssetBundle
+class GridJsAsset extends AssetBundle
 {
-    public $sourcePath = '@bower/jqgrid';
+    public $sourcePath = '@bower/grid.js';
 
     public $css = [
-        'css/ui.jqgrid.css'
+        'dist/grid.js-4.7.0.min.css',
+        'plugins/ui.multiselect.css'
     ];
 
     public function init()
     {
         parent::init();
+
         $jsLangSuffix = $this->getLanguageSuffix();
         if ($jsLangSuffix === 'uk') {
             $jsLangSuffix = 'ua';
         }
 
         $this->js = [
-            'js/minified/jquery.jqGrid.min.js',
-            "js/i18n/grid.locale-{$jsLangSuffix}.js"
+            'dist/grid.js-4.7.0.min.js',
+            'plugins/ui.multiselect.js',
+            "dist/i18n/grid.locale-{$jsLangSuffix}.min.js"
         ];
     }
 
     protected function getLanguageSuffix()
     {
         $currentAppLanguage = Yii::$app->language;
-        $langsExceptions = ['pt-BR', 'sr-LATIN'];
+        $langsExceptions = ['pt-BR'];
 
         if (strpos($currentAppLanguage, '-') === false) {
             return $currentAppLanguage;
         }
 
         if (in_array($currentAppLanguage, $langsExceptions)) {
-            return $currentAppLanguage;
+            return strtolower($currentAppLanguage);
         } else {
             return substr($currentAppLanguage, 0, strpos($currentAppLanguage, '-'));
         }

@@ -15,7 +15,7 @@ use yii\helpers\Json;
 use yii\web\BadRequestHttpException;
 
 /**
- * Action for jqGrid widget based on ActiveDataProvider.
+ * Action for grid.js widget based on ActiveDataProvider.
  *
  * For example:
  *

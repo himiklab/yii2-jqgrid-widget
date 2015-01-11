@@ -15,7 +15,7 @@ use yii\web\BadRequestHttpException;
 use yii\base\InvalidConfigException;
 
 /**
- * Action for jqGrid widget based on ArrayDataProvider.
+ * Action for grid.js widget based on ArrayDataProvider.
  *
  * For example:
  *

@@ -16,38 +16,10 @@ class WidgetAsset extends AssetBundle
 
     public $depends = [
         'yii\jui\JuiAsset',
-        'himiklab\jqgrid\JqGridAsset'
+        'himiklab\jqgrid\GridJsAsset'
     ];
 
-    public $css = [
-        'css/ui.multiselect.css'
+    public $js =  [
+        'js/export.xml.js'
     ];
-
-    public function init()
-    {
-        parent::init();
-        $jsLangSuffix = $this->getLanguageSuffix();
-
-        $this->js = [
-            'js/ui.multiselect.js',
-            "js/locale/ui-multiselect-{$jsLangSuffix}.js",
-            'js/export.xml.js'
-        ];
-    }
-
-    protected function getLanguageSuffix()
-    {
-        $currentAppLanguage = Yii::$app->language;
-        $langsExceptions = ['pt-br'];
-
-        if (strpos($currentAppLanguage, '-') === false) {
-            return $currentAppLanguage;
-        }
-
-        if (in_array($currentAppLanguage, $langsExceptions)) {
-            return $currentAppLanguage;
-        } else {
-            return substr($currentAppLanguage, 0, strpos($currentAppLanguage, '-'));
-        }
-    }
 }
