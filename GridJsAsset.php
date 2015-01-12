@@ -15,8 +15,8 @@ class GridJsAsset extends AssetBundle
     public $sourcePath = '@bower/grid.js';
 
     public $css = [
-        'dist/grid.js-4.7.0.min.css',
-        'plugins/ui.multiselect.css'
+        'plugins/ui.multiselect.css',
+        'dist/grid.js-0.1.0.min.css'
     ];
 
     public function init()
@@ -24,13 +24,9 @@ class GridJsAsset extends AssetBundle
         parent::init();
 
         $jsLangSuffix = $this->getLanguageSuffix();
-        if ($jsLangSuffix === 'uk') {
-            $jsLangSuffix = 'ua';
-        }
-
         $this->js = [
-            'dist/grid.js-4.7.0.min.js',
             'plugins/ui.multiselect.js',
+            YII_DEBUG ? 'dist/grid.js-0.1.0.js' : 'dist/grid.js-0.1.0.min.js',
             "dist/i18n/grid.locale-{$jsLangSuffix}.min.js"
         ];
     }
@@ -38,14 +34,14 @@ class GridJsAsset extends AssetBundle
     protected function getLanguageSuffix()
     {
         $currentAppLanguage = Yii::$app->language;
-        $langsExceptions = ['pt-BR'];
+        $langsExceptions = ['pt-BR', 'zh-CN', 'zh-TW'];
 
         if (strpos($currentAppLanguage, '-') === false) {
             return $currentAppLanguage;
         }
 
         if (in_array($currentAppLanguage, $langsExceptions)) {
-            return strtolower($currentAppLanguage);
+            return $currentAppLanguage;
         } else {
             return substr($currentAppLanguage, 0, strpos($currentAppLanguage, '-'));
         }
