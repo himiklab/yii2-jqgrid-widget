@@ -158,6 +158,10 @@ class JqGridWidget extends Widget
 
     protected function preparePagerSettings($pagerUserSettings)
     {
+        if (empty($pagerUserSettings)) {
+            return '{}';
+        }
+
         $pagerOptions = [
             'edit' => false,
             'add' => false,
@@ -215,6 +219,10 @@ class JqGridWidget extends Widget
 
     protected function prepareToolbarSettings($filterToolbarSettings)
     {
+        if (empty($filterToolbarSettings)) {
+            return null;
+        }
+
         return Json::encode($filterToolbarSettings, $this->jsonSettings);
     }
 }
