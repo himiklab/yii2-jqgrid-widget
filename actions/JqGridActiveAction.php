@@ -13,6 +13,7 @@ use yii\base\InvalidConfigException;
 use yii\data\ActiveDataProvider;
 use yii\helpers\Json;
 use yii\web\BadRequestHttpException;
+use yii\helpers\ArrayHelper;
 
 /**
  * Action for grid.js widget based on ActiveDataProvider.
@@ -139,7 +140,7 @@ class JqGridActiveAction extends Action
             }
 
             foreach ($attributes as $modelAttribute) {
-                $response['rows'][$i]['cell'][$modelAttribute] = $record->$modelAttribute;
+                $response['rows'][$i]['cell'][$modelAttribute] = ArrayHelper::getValue($record, $modelAttribute);
             }
             ++$i;
         }
