@@ -16,7 +16,7 @@ class WidgetAsset extends AssetBundle
 
     public $depends = [
         'yii\jui\JuiAsset',
-        'himiklab\jqgrid\GridJsAsset'
+        'himiklab\jqgrid\JqGridAsset'
     ];
 
     public $js =  [

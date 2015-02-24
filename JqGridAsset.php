@@ -10,13 +10,13 @@ namespace himiklab\jqgrid;
 use Yii;
 use yii\web\AssetBundle;
 
-class GridJsAsset extends AssetBundle
+class JqGridAsset extends AssetBundle
 {
-    public $sourcePath = '@bower/grid.js';
+    public $sourcePath = '@bower/free-jqGrid';
 
     public $css = [
         'plugins/ui.multiselect.css',
-        'dist/grid.js-0.1.0.min.css'
+        'css/ui.jqgrid.css'
     ];
 
     public function init()
@@ -25,7 +25,7 @@ class GridJsAsset extends AssetBundle
 
         $this->js = [
             'plugins/ui.multiselect.js',
-            YII_DEBUG ? 'dist/grid.js-0.1.0.js' : 'dist/grid.js-0.1.0.min.js'
+            YII_DEBUG ? 'js/jquery.jqGrid.src.js' : 'js/jquery.jqGrid.min.js'
         ];
         $this->registerLanguageAsset();
     }
@@ -33,12 +33,12 @@ class GridJsAsset extends AssetBundle
     protected function registerLanguageAsset()
     {
         $language = Yii::$app->language;
-        if (!file_exists(Yii::getAlias($this->sourcePath . "/dist/i18n/grid.locale-{$language}.min.js"))) {
+        if (!file_exists(Yii::getAlias($this->sourcePath . "/js/i18n/grid.locale-{$language}.js"))) {
             $language = substr($language, 0, 2);
-            if (!file_exists(Yii::getAlias($this->sourcePath . "/dist/i18n/grid.locale-{$language}.min.js"))) {
+            if (!file_exists(Yii::getAlias($this->sourcePath . "/js/i18n/grid.locale-{$language}.js"))) {
                 return;
             }
         }
-        $this->js[] = "/dist/i18n/grid.locale-{$language}.min.js";
+        $this->js[] = "/js/i18n/grid.locale-{$language}.js";
     }
 }
