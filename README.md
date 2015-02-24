@@ -31,7 +31,6 @@ public function actions()
         'jqgrid' => [
             'class' => JqGridActiveAction::className(),
             'model' => Page::className(),
-            'columns' => ['title', 'author', 'language']
             'scope' => function ($query) {
                 /** @var \yii\db\ActiveQuery $query */
                 $query->select(['title', 'author', 'language']);

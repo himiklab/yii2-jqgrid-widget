@@ -28,7 +28,7 @@ use yii\helpers\ArrayHelper;
  *           'class' => JqGridActiveAction::className(),
  *           'model' => Page::className(),
  *           'scope' => function ($query) {
- *               $query->select(['title', 'author'], 'language');
+ *               $query->select('title', 'author', 'language');
  *           },
  *       ],
  *  ];
