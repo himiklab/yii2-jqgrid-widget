@@ -143,6 +143,7 @@ class JqGridWidget extends Widget
 
         $gridSettings['url'] = $this->requestUrl . '?action=request';
         $gridSettings['datatype'] = 'json';
+        $gridSettings['iconSet'] = 'jQueryUI'; // OlegKi's version only
         $gridSettings['mtype'] = $this->requestMethod === self::REQUEST_METHOD_POST ? 'POST' : 'GET';
         if ($this->enablePager) {
             $gridSettings['pager'] = "#jqGrid-pager-{$widgetId}";
