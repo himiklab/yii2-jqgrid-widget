@@ -11,9 +11,9 @@ use Yii;
 use yii\base\Action;
 use yii\base\InvalidConfigException;
 use yii\data\ActiveDataProvider;
+use yii\helpers\ArrayHelper;
 use yii\helpers\Json;
 use yii\web\BadRequestHttpException;
-use yii\helpers\ArrayHelper;
 
 /**
  * Action for grid.js widget based on ActiveDataProvider.
@@ -73,6 +73,10 @@ class JqGridActiveAction extends Action
             $this->columns[] = $modelPK[0];
         }
 
+        if (empty($this->columns)) {
+            $this->columns = $model->attributes();
+        }
+
         switch ($getActionParam) {
             case 'request':
                 header('Content-Type: application/json; charset=utf-8');
@@ -126,12 +130,6 @@ class JqGridActiveAction extends Action
             $requestData['rows'] != 0 ? ceil($recordsTotalCount / $requestData['rows']) : 0;
         $response['records'] = $recordsTotalCount;
 
-        if (!empty($this->columns)) {
-            $attributes = $this->columns;
-        } else {
-            $attributes = $model->attributes();
-        }
-
         $i = 0;
         foreach ($dataProvider->getModels() as $record) {
             /** @var \yii\db\ActiveRecord $record */
@@ -139,7 +137,7 @@ class JqGridActiveAction extends Action
                 $response['rows'][$i]['id'] = $record->primaryKey;
             }
 
-            foreach ($attributes as $modelAttribute) {
+            foreach ($this->columns as $modelAttribute) {
                 $response['rows'][$i]['cell'][$modelAttribute] = ArrayHelper::getValue($record, $modelAttribute);
             }
             ++$i;
@@ -165,9 +163,9 @@ class JqGridActiveAction extends Action
         }
 
         $record = $model::findOne($requestData['id']);
-        foreach ($record->attributes() as $modelAttribute) {
-            if (isset($requestData[$modelAttribute])) {
-                $record->$modelAttribute = $requestData[$modelAttribute];
+        foreach ($this->columns as $column) {
+            if (isset($requestData[$column])) {
+                $record->$column = $requestData[$column];
             }
         }
         $record->save();
@@ -186,9 +184,9 @@ class JqGridActiveAction extends Action
             throw new BadRequestHttpException('Id param isn\'t set.');
         }
 
-        foreach ($model->attributes() as $modelAttribute) {
-            if (isset($requestData[$modelAttribute])) {
-                $model->$modelAttribute = $requestData[$modelAttribute];
+        foreach ($this->columns as $column) {
+            if (isset($requestData[$column])) {
+                $model->$column = $requestData[$column];
             }
         }
         $model->save();
@@ -225,7 +223,7 @@ class JqGridActiveAction extends Action
         $searchData = [];
 
         // filter panel
-        foreach ($model->attributes() as $modelAttribute) {
+        foreach ($this->columns as $modelAttribute) {
             if (array_key_exists($modelAttribute, $requestData)) {
                 $searchData['rules'][] = [
                     'op' => 'bw',
@@ -278,9 +276,33 @@ class JqGridActiveAction extends Action
         /** @var \yii\db\ActiveRecord $model */
         $model = $this->model;
         foreach ($searchData['rules'] as $rule) {
-            if (!$model->isAttributeSafe($rule['field'])) {
-                throw new BadRequestHttpException('Unsafe attribute.');
+            if (($pointPosition = strpos($rule['field'], '.')) !== false) {
+                // one level of relations
+                $relationName = substr($rule['field'], 0, $pointPosition);
+
+                $relationMethod = 'get' . ucfirst($relationName);
+                if (!method_exists($model, $relationMethod)) {
+                    throw new BadRequestHttpException('Relation isn\'t exist.');
+                }
+                /** @var \yii\db\ActiveQuery $relationQuery */
+                $relationQuery = $model->$relationMethod();
+
+                /** @var \yii\db\ActiveRecord $relationModel */
+                $relationModel = new $relationQuery->modelClass;
+
+                $attribute = substr($rule['field'], $pointPosition + 1);
+                if (!$relationModel->isAttributeSafe($attribute)) {
+                    throw new BadRequestHttpException('Unsafe relation attribute.');
+                }
+
+                $query->joinWith($relationName);
+                $rule['field'] = preg_replace("/^$relationName/", $relationModel::tableName(), $rule['field']);
+            } else {
+                if (!$model->isAttributeSafe($rule['field'])) {
+                    throw new BadRequestHttpException('Unsafe attribute.');
+                }
             }
+
             switch ($rule['op']) {
                 case 'eq':
                     $query->$groupCondition([$rule['field'] => $rule['data']]);
