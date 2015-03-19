@@ -11,7 +11,7 @@ use Yii;
 use yii\base\Action;
 use yii\base\InvalidConfigException;
 use yii\data\ActiveDataProvider;
-use yii\helpers\ArrayHelper;
+use yii\data\Sort;
 use yii\helpers\Json;
 use yii\web\BadRequestHttpException;
 
@@ -119,7 +119,7 @@ class JqGridActiveAction extends Action
             [
                 'query' => $query,
                 'pagination' => $this->getPagination($requestData),
-                'sort' => $this->getSort($requestData)
+                'sort' => $this->getSort($requestData, $query)
             ]
         );
         $recordsTotalCount = $dataProvider->totalCount;
@@ -138,7 +138,7 @@ class JqGridActiveAction extends Action
             }
 
             foreach ($this->columns as $modelAttribute) {
-                $response['rows'][$i]['cell'][$modelAttribute] = ArrayHelper::getValue($record, $modelAttribute);
+                $response['rows'][$i]['cell'][$modelAttribute] = $this->getValue($record, $modelAttribute);
             }
             ++$i;
         }
@@ -155,7 +155,6 @@ class JqGridActiveAction extends Action
      */
     protected function editAction($requestData)
     {
-        /** @var \yii\db\ActiveRecord $model */
         $model = $this->model;
 
         if (!isset($requestData['id'])) {
@@ -168,6 +167,8 @@ class JqGridActiveAction extends Action
                 $record->$column = $requestData[$column];
             }
         }
+
+        /** @var \yii\db\ActiveRecord $record */
         $record->save();
     }
 
@@ -177,7 +178,6 @@ class JqGridActiveAction extends Action
      */
     protected function addAction($requestData)
     {
-        /** @var \yii\db\ActiveRecord $model */
         $model = $this->model;
 
         if (!isset($requestData['id'])) {
@@ -218,8 +218,6 @@ class JqGridActiveAction extends Action
      */
     protected function prepareSearch($query, $requestData)
     {
-        /** @var \yii\db\ActiveRecord $model */
-        $model = $this->model;
         $searchData = [];
 
         // filter panel
@@ -258,6 +256,8 @@ class JqGridActiveAction extends Action
      */
     protected function addSearchOptionsRecursively($query, $searchData)
     {
+        $model = $this->model;
+
         $groupCondition = 'andWhere';
         if (isset($searchData['groupOp'])) {
             if (isset($searchData['groups'])) {
@@ -273,34 +273,11 @@ class JqGridActiveAction extends Action
             }
         }
 
-        /** @var \yii\db\ActiveRecord $model */
-        $model = $this->model;
         foreach ($searchData['rules'] as $rule) {
-            if (($pointPosition = strpos($rule['field'], '.')) !== false) {
-                // one level of relations
-                $relationName = substr($rule['field'], 0, $pointPosition);
-
-                $relationMethod = 'get' . ucfirst($relationName);
-                if (!method_exists($model, $relationMethod)) {
-                    throw new BadRequestHttpException('Relation isn\'t exist.');
-                }
-                /** @var \yii\db\ActiveQuery $relationQuery */
-                $relationQuery = $model->$relationMethod();
-
-                /** @var \yii\db\ActiveRecord $relationModel */
-                $relationModel = new $relationQuery->modelClass;
-
-                $attribute = substr($rule['field'], $pointPosition + 1);
-                if (!$relationModel->isAttributeSafe($attribute)) {
-                    throw new BadRequestHttpException('Unsafe relation attribute.');
-                }
-
-                $query->joinWith($relationName);
-                $rule['field'] = preg_replace("/^$relationName/", $relationModel::tableName(), $rule['field']);
-            } else {
-                if (!$model->isAttributeSafe($rule['field'])) {
-                    throw new BadRequestHttpException('Unsafe attribute.');
-                }
+            if (!$this->prepareRelationField($query, $rule['field'])
+                && !$model->isAttributeSafe($rule['field'])
+            ) {
+                throw new BadRequestHttpException('Unsafe attribute.');
             }
 
             switch ($rule['op']) {
@@ -347,6 +324,124 @@ class JqGridActiveAction extends Action
                 default:
                     throw new BadRequestHttpException('Unsupported value in `op` or `searchOper` param');
             }
+        }
+    }
+
+    /**
+     * @param array $requestData
+     * @param \yii\db\ActiveQuery $query
+     * @return bool|Sort
+     */
+    protected function getSort($requestData, $query)
+    {
+        if (!isset($requestData['sidx']) || $requestData['sidx'] == ''
+            || ($requestData['sord'] !== 'asc' && $requestData['sord'] !== 'desc')
+        ) {
+            return false;
+        }
+
+        $attributes = [];
+        $defaultOrder = [];
+        $sidxArray = explode(',', $requestData['sidx']);
+
+        if (count($sidxArray) > 1) {
+            // multi-column
+            foreach ($sidxArray as $sidx) {
+                if (preg_match('/(.+)\s(asc|desc)/', $sidx, $sidxMatch)) {
+                    $this->prepareRelationField($query, $sidxMatch[1]);
+
+                    $attributes[] = $sidxMatch[1];
+                    $defaultOrder[$sidxMatch[1]] = ($sidxMatch[2] === 'asc' ? SORT_ASC : SORT_DESC);
+                } else {
+                    $sidx = trim($sidx);
+                    $this->prepareRelationField($query, $sidx);
+
+                    $attributes[] = $sidx;
+                    $defaultOrder[$sidx] = ($requestData['sord'] === 'asc' ? SORT_ASC : SORT_DESC);
+                }
+            }
+        } else {
+            // single-column
+            $attributes[0] = trim($requestData['sidx']);
+            $this->prepareRelationField($query, $attributes[0]);
+
+            $defaultOrder[$attributes[0]] = ($requestData['sord'] === 'asc' ? SORT_ASC : SORT_DESC);
+        }
+
+        return new Sort([
+            'attributes' => $attributes,
+            'defaultOrder' => $defaultOrder
+        ]);
+    }
+
+    /**
+     * @param \yii\db\ActiveQuery $query
+     * @param string $field
+     * @return bool
+     * @throws BadRequestHttpException
+     */
+    protected function prepareRelationField($query, &$field)
+    {
+        if ((strpos($field, '.')) === false) {
+            return false;
+        }
+        $model = $this->model;
+
+        $fullRelation = '';
+        $fieldElements = explode('.', $field);
+        $fieldElementsCount = count($fieldElements);
+
+        for ($i = 1; $i < $fieldElementsCount; ++$i) {
+            $relationName = $fieldElements[$i - 1];
+            $relationMethod = 'get' . ucfirst($relationName);
+
+            if (!method_exists($model, $relationMethod)) {
+                throw new BadRequestHttpException('Relation isn\'t exist.');
+            }
+
+            /** @var \yii\db\ActiveQuery $relationQuery */
+            $relationQuery = $model->$relationMethod();
+            /** @var \yii\db\ActiveRecord $relationModel */
+            $model = new $relationQuery->modelClass;
+            $fullRelation .= ('.' . $relationName);
+        }
+        $query->joinWith(trim($fullRelation, '.'));
+
+        $attribute = $fieldElements[$fieldElementsCount - 1];
+        if (!$model->isAttributeSafe($attribute)) {
+            throw new BadRequestHttpException('Unsafe relation attribute.');
+        }
+
+        $field = $model::tableName() . '.' . $attribute;
+        return true;
+    }
+
+    /**
+     * @param \yii\db\ActiveRecord|array $record
+     * @param string $attribute
+     * @param string $separator
+     * @return array|null|string
+     */
+    protected function getValue($record, $attribute, $separator = PHP_EOL)
+    {
+        if (($pointPosition = strrpos($attribute, '.')) !== false) {
+            $record = $this->getValue($record, substr($attribute, 0, $pointPosition));
+            $attribute = substr($attribute, $pointPosition + 1);
+        }
+
+        if (is_array($record)) {
+            $result = null;
+            foreach ($record as $currentRecord) {
+                $currentValue = $currentRecord->$attribute;
+                if (is_object($currentValue)) {
+                    $result[] = $currentValue;
+                } else {
+                    $result .= ($currentRecord->$attribute . $separator);
+                }
+            }
+            return $result;
+        } else {
+            return $record->$attribute;
         }
     }
 }

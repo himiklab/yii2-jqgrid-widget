@@ -9,10 +9,11 @@ namespace himiklab\jqgrid\actions;
 
 use Yii;
 use yii\base\Action;
-use yii\helpers\Json;
-use yii\data\ArrayDataProvider;
-use yii\web\BadRequestHttpException;
 use yii\base\InvalidConfigException;
+use yii\data\ArrayDataProvider;
+use yii\data\Sort;
+use yii\helpers\Json;
+use yii\web\BadRequestHttpException;
 
 /**
  * Action for grid.js widget based on ArrayDataProvider.
@@ -95,5 +96,44 @@ class JqGridArrayAction extends Action
             $response,
             (YII_DEBUG ? JSON_PRETTY_PRINT : 0) | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_NUMERIC_CHECK
         );
+    }
+
+    /**
+     * @param array $requestData
+     * @return bool|Sort
+     */
+    protected function getSort($requestData)
+    {
+        if (!isset($requestData['sidx']) || $requestData['sidx'] == ''
+            || ($requestData['sord'] !== 'asc' && $requestData['sord'] !== 'desc')
+        ) {
+            return false;
+        }
+
+        $attributes = [];
+        $defaultOrder = [];
+        $sidxArray = explode(',', $requestData['sidx']);
+
+        if (count($sidxArray) > 1) {
+            // multi-column
+            foreach ($sidxArray as $sidx) {
+                if (preg_match('/(.+)\s(asc|desc)/', $sidx, $sidxMatch)) {
+                    $attributes[] = $sidxMatch[1];
+                    $defaultOrder[$sidxMatch[1]] = ($sidxMatch[2] === 'asc' ? SORT_ASC : SORT_DESC);
+                } else {
+                    $attributes[] = trim($sidx);
+                    $defaultOrder[trim($sidx)] = ($requestData['sord'] === 'asc' ? SORT_ASC : SORT_DESC);
+                }
+            }
+        } else {
+            // single-column
+            $attributes[0] = trim($requestData['sidx']);
+            $defaultOrder[$attributes[0]] = ($requestData['sord'] === 'asc' ? SORT_ASC : SORT_DESC);
+        }
+
+        return new Sort([
+            'attributes' => $attributes,
+            'defaultOrder' => $defaultOrder
+        ]);
     }
 }
