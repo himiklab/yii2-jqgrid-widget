@@ -429,7 +429,9 @@ class JqGridActiveAction extends Action
             $attribute = substr($attribute, $pointPosition + 1);
         }
 
-        if (is_array($record)) {
+        if ($record === null) {
+            return null;
+        } elseif (is_array($record)) {
             $result = null;
             foreach ($record as $currentRecord) {
                 $currentValue = $currentRecord->$attribute;
