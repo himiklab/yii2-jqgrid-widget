@@ -66,6 +66,9 @@ class JqGridWidget extends Widget
     /** @var bool */
     public $enableFilterToolbar = false;
 
+    /** @var bool */
+    public $enableHiddenColumnsOptimization = false;
+
     /** @var array */
     public $filterToolbarSettings = [];
 
@@ -74,6 +77,9 @@ class JqGridWidget extends Widget
 
     /** @var array */
     public $pagerSettings = [];
+
+    /** @var array */
+    public $hiddenColumnsOptimizationExclusion = [];
 
     /** @var self::REQUEST_METHOD_POST|self::REQUEST_METHOD_GET */
     public $requestMethod = self::REQUEST_METHOD_POST;
@@ -104,7 +110,18 @@ class JqGridWidget extends Widget
                 'caption' => '',
                 'title' => new JsExpression('jQuery.jgrid.col.caption'),
                 'buttonicon' => 'ui-icon-calculator',
-                'onClickButton' => new JsExpression('function(){jQuery(this).jqGrid(\'columnChooser\');}')
+                'onClickButton' => $this->enableHiddenColumnsOptimization ? new JsExpression(
+                    "function() {
+                        jQuery(this).jqGrid('columnChooser', {
+                            done: function(perm) {
+                                if(perm) {
+                                    this.jqGrid('remapColumns', perm, true);
+                                    this.trigger('reloadGrid');
+                                }
+                            }
+                        });
+                    }"
+                ) : new JsExpression("function(){jQuery(this).jqGrid('columnChooser');}")
             ];
             $buttonOptions = Json::encode($buttonOptions, $this->jsonSettings);
             $script .= PHP_EOL . ".navButtonAdd('#jqGrid-pager-{$widgetId}', {$buttonOptions})";
@@ -144,6 +161,24 @@ class JqGridWidget extends Widget
         $gridSettings['url'] = $this->requestUrl . '?action=request';
         $gridSettings['datatype'] = 'json';
         $gridSettings['iconSet'] = 'jQueryUI'; // OlegKi's version only
+
+        if ($this->enableHiddenColumnsOptimization) {
+            $gridSettings['serializeGridData'] = new JsExpression(
+                "function(postData) {
+                    var colModel = jQuery('#jqGrid-{$widgetId}').jqGrid('getGridParam', 'colModel');
+                    var visibleColumns = [];
+                    for (var i = 0; i < colModel.length; ++i) {
+                        var colName = colModel[i].name;
+                        if (!colModel[i].hidden && colName != 'cb' && colName != 'subgrid' && colName != 'rn') {
+                            visibleColumns.push(colName);
+                        }
+                    }
+                    visibleColumns = visibleColumns.concat(" .
+                Json::encode($this->hiddenColumnsOptimizationExclusion, $this->jsonSettings) . ");
+                    return jQuery.extend({}, postData, {visibleColumns: visibleColumns});
+                }"
+            );
+        }
         $gridSettings['mtype'] = $this->requestMethod === self::REQUEST_METHOD_POST ? 'POST' : 'GET';
         if ($this->enablePager) {
             $gridSettings['pager'] = "#jqGrid-pager-{$widgetId}";

@@ -77,19 +77,27 @@ class JqGridActiveAction extends Action
             $this->columns = $model->attributes();
         }
 
+        $requestData = $this->getRequestData();
+        if (isset($requestData['visibleColumns'])) {
+            $this->columns = array_filter($this->columns, function ($column) use ($modelPK, $requestData) {
+                return array_search($column, $requestData['visibleColumns'])
+                || (isset($modelPK[0]) && $column == $modelPK[0]);
+            });
+        }
+
         switch ($getActionParam) {
             case 'request':
                 header('Content-Type: application/json; charset=utf-8');
-                echo $this->requestAction($this->getRequestData());
+                echo $this->requestAction($requestData);
                 break;
             case 'edit':
-                $this->editAction($this->getRequestData());
+                $this->editAction($requestData);
                 break;
             case 'add':
-                $this->addAction($this->getRequestData());
+                $this->addAction($requestData);
                 break;
             case 'del':
-                $this->delAction($this->getRequestData());
+                $this->delAction($requestData);
                 break;
             default:
                 throw new BadRequestHttpException('Unsupported GET `action` param.');
