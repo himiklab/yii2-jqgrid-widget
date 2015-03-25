@@ -169,7 +169,9 @@ class JqGridActiveAction extends Action
             throw new BadRequestHttpException('Id param isn\'t set.');
         }
 
-        $record = $model::findOne($requestData['id']);
+        if (($record = $model::findOne($requestData['id'])) === null) {
+            return;
+        }
         foreach ($this->columns as $column) {
             if (isset($requestData[$column])) {
                 $record->$column = $requestData[$column];
@@ -215,7 +217,12 @@ class JqGridActiveAction extends Action
         }
 
         foreach (explode(',', $requestData['id']) as $id) {
-            $model::findOne($id)->delete();
+            if (($currentModel = $model::findOne($id)) !== null) {
+                /** @var \yii\db\ActiveRecord $currentModel */
+                $currentModel->delete();
+            } else {
+                continue;
+            }
         }
     }
 
