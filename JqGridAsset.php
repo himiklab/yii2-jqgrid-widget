@@ -12,7 +12,7 @@ use yii\web\AssetBundle;
 
 class JqGridAsset extends AssetBundle
 {
-    public $sourcePath = '@bower/free-jqGrid';
+    public $sourcePath = '@bower/free-jqgrid';
 
     public $css = [
         'plugins/ui.multiselect.css',
