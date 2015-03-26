@@ -69,7 +69,7 @@ class JqGridActiveAction extends Action
         // add PK if it exist and not set to $this->columns
         $model = $this->model;
         $modelPK = $model::primaryKey();
-        if (isset($modelPK[0]) && !empty($this->columns) && !array_search($modelPK[0], $this->columns)) {
+        if (isset($modelPK[0]) && !empty($this->columns) && !in_array($modelPK[0], $this->columns)) {
             $this->columns[] = $modelPK[0];
         }
 
@@ -80,7 +80,7 @@ class JqGridActiveAction extends Action
         $requestData = $this->getRequestData();
         if (isset($requestData['visibleColumns'])) {
             $this->columns = array_filter($this->columns, function ($column) use ($modelPK, $requestData) {
-                return array_search($column, $requestData['visibleColumns'])
+                return in_array($column, $requestData['visibleColumns'])
                 || (isset($modelPK[0]) && $column == $modelPK[0]);
             });
         }
@@ -456,7 +456,7 @@ class JqGridActiveAction extends Action
                     $result .= ($currentRecord->$attribute . $separator);
                 }
             }
-            return $result;
+            return trim($result, $separator);
         } else {
             return $record->$attribute;
         }
