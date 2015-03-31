@@ -336,6 +336,18 @@ class JqGridActiveAction extends Action
                     array_walk($rule['data'], 'trim');
                     $query->$groupCondition(['not in', $rule['field'], $rule['data']]);
                     break;
+                case 'lt':
+                    $query->$groupCondition(['<', $rule['field'], $rule['data']]);
+                    break;
+                case 'le':
+                    $query->$groupCondition(['<=', $rule['field'], $rule['data']]);
+                    break;
+                case 'gt':
+                    $query->$groupCondition(['>', $rule['field'], $rule['data']]);
+                    break;
+                case 'ge':
+                    $query->$groupCondition(['>=', $rule['field'], $rule['data']]);
+                    break;
                 default:
                     throw new BadRequestHttpException('Unsupported value in `op` or `searchOper` param');
             }
