@@ -92,6 +92,12 @@ class JqGridWidget extends Widget
         $view = $this->getView();
         $widgetId = $this->id;
 
+        if (isset($this->gridSettings['iconSet']) && $this->gridSettings['iconSet'] === 'fontAwesome') {
+            $useFontAwesome = true;
+        } else {
+            $useFontAwesome = false;
+        }
+
         $this->jsonSettings =
             (YII_DEBUG ? JSON_PRETTY_PRINT : 0) | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_NUMERIC_CHECK;
 
@@ -109,7 +115,7 @@ class JqGridWidget extends Widget
             $buttonOptions = [
                 'caption' => '',
                 'title' => new JsExpression('jQuery.jgrid.col.caption'),
-                'buttonicon' => 'ui-icon-calculator',
+                'buttonicon' => $useFontAwesome ? 'fa fa-lg fa-fw fa-calculator' : 'ui-icon-calculator',
                 'onClickButton' => $this->enableHiddenColumnsOptimization ? new JsExpression(
                     "function() {
                         jQuery(this).jqGrid('columnChooser', {
@@ -131,7 +137,7 @@ class JqGridWidget extends Widget
             $buttonOptions = [
                 'caption' => '',
                 'title' => 'Export to Excel XML',
-                'buttonicon' => 'ui-icon-document',
+                'buttonicon' => $useFontAwesome ? 'fa fa-file-excel-o' : 'ui-icon-document',
                 'onClickButton' => new JsExpression(
                     "function(){jQuery.jgrid.XMLExport('{$widgetId}', 'ExcelXML.xml');}"
                 )
