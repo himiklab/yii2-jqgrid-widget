@@ -14,9 +14,10 @@ use yii\data\ActiveDataProvider;
 use yii\data\Sort;
 use yii\helpers\Json;
 use yii\web\BadRequestHttpException;
+use yii\web\Response;
 
 /**
- * Action for grid.js widget based on ActiveDataProvider.
+ * Action for jqGrid widget based on ActiveDataProvider.
  *
  * For example:
  *
@@ -87,9 +88,8 @@ class JqGridActiveAction extends Action
 
         switch ($getActionParam) {
             case 'request':
-                header('Content-Type: application/json; charset=utf-8');
-                echo $this->requestAction($requestData);
-                break;
+                Yii::$app->response->format = Response::FORMAT_JSON;
+                return $this->requestAction($requestData);
             case 'edit':
                 $this->editAction($requestData);
                 break;
@@ -151,10 +151,7 @@ class JqGridActiveAction extends Action
             ++$i;
         }
 
-        return Json::encode(
-            $response,
-            (YII_DEBUG ? JSON_PRETTY_PRINT : 0) | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_NUMERIC_CHECK
-        );
+        return $response;
     }
 
     /**
@@ -180,6 +177,13 @@ class JqGridActiveAction extends Action
 
         /** @var \yii\db\ActiveRecord $record */
         $record->save();
+        if (!$record->save() && $record->hasErrors()) {
+            $errors = '';
+            foreach ($record->errors as $error) {
+                $errors .= (implode(' ', $error) . ' ');
+            }
+            echo $errors;
+        }
     }
 
     /**
@@ -193,13 +197,22 @@ class JqGridActiveAction extends Action
         if (!isset($requestData['id'])) {
             throw new BadRequestHttpException('Id param isn\'t set.');
         }
+        if ($requestData['id'] === '_empty') {
+            unset ($requestData['id']);
+        }
 
         foreach ($this->columns as $column) {
             if (isset($requestData[$column])) {
                 $model->$column = $requestData[$column];
             }
         }
-        $model->save();
+        if (!$model->save() && $model->hasErrors()) {
+            $errors = '';
+            foreach ($model->errors as $error) {
+                $errors .= (implode(' ', $error) . ' ');
+            }
+            echo $errors;
+        }
     }
 
     /**

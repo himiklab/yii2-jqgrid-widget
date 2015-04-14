@@ -12,11 +12,11 @@ use yii\base\Action;
 use yii\base\InvalidConfigException;
 use yii\data\ArrayDataProvider;
 use yii\data\Sort;
-use yii\helpers\Json;
 use yii\web\BadRequestHttpException;
+use yii\web\Response;
 
 /**
- * Action for grid.js widget based on ArrayDataProvider.
+ * Action for jqGrid widget based on ArrayDataProvider.
  *
  * For example:
  *
@@ -51,9 +51,8 @@ class JqGridArrayAction extends Action
 
         switch ($getActionParam) {
             case 'request':
-                header('Content-Type: application/json; charset=utf-8');
-                echo $this->requestAction($this->getRequestData());
-                break;
+                Yii::$app->response->format = Response::FORMAT_JSON;
+                return $this->requestAction($this->getRequestData());
             default:
                 throw new BadRequestHttpException('Unsupported GET `action` param.');
         }
@@ -92,10 +91,7 @@ class JqGridArrayAction extends Action
             ++$i;
         }
 
-        return Json::encode(
-            $response,
-            (YII_DEBUG ? JSON_PRETTY_PRINT : 0) | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_NUMERIC_CHECK
-        );
+        return $response;
     }
 
     /**

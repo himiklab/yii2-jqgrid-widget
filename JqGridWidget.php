@@ -221,14 +221,26 @@ class JqGridWidget extends Widget
             switch ($optionName) {
                 case 'edit':
                     $editSettings['url'] = $this->requestUrl . '?action=edit';
+                    $editSettings['afterSubmit'] = new JsExpression('
+                    function(response){
+                        return [response.responseText == "", response.responseText, null];
+                    }');
                     $pagerOptions['edit'] = array_merge($editSettings, $optionSettings);
                     break;
                 case 'add':
                     $addSettings['url'] = $this->requestUrl . '?action=add';
+                    $addSettings['afterSubmit'] = new JsExpression('
+                    function(response){
+                        return [response.responseText == "", response.responseText, null];
+                    }');
                     $pagerOptions['add'] = array_merge($addSettings, $optionSettings);
                     break;
                 case 'del':
                     $delSettings['url'] = $this->requestUrl . '?action=del';
+                    $delSettings['afterSubmit'] = new JsExpression('
+                    function(response){
+                        return [response.responseText == "", response.responseText, null];
+                    }');
                     $pagerOptions['del'] = array_merge($delSettings, $optionSettings);
                     break;
                 case 'search':
