@@ -1,7 +1,7 @@
 <?php
 /**
  * @link https://github.com/himiklab/yii2-jqgrid-widget
- * @copyright Copyright (c) 2014 HimikLab
+ * @copyright Copyright (c) 2014-2015 HimikLab
  * @license http://opensource.org/licenses/MIT MIT
  */
 
@@ -157,32 +157,85 @@ class JqGridActiveAction extends Action
     /**
      * @param array $requestData
      * @throws BadRequestHttpException
+     * @throws \Exception
+     * @throws \yii\db\Exception
      */
     protected function editAction($requestData)
     {
         $model = $this->model;
-
         if (!isset($requestData['id'])) {
             throw new BadRequestHttpException('Id param isn\'t set.');
         }
 
+        /** @var \yii\db\ActiveRecord $record */
         if (($record = $model::findOne($requestData['id'])) === null) {
             return;
         }
+
+        $relationColumns = [];
         foreach ($this->columns as $column) {
             if (isset($requestData[$column])) {
-                $record->$column = $requestData[$column];
+                if ((strpos($column, '.')) === false) {
+                    // no relation
+                    $record->$column = $requestData[$column];
+                } else {
+                    // with relation
+                    preg_match('/(.+)\.([^\.]+)/', $column, $matches);
+                    $relationColumns[$matches[1]][] = [
+                        'column' => $matches[2],
+                        'value' => $requestData[$column]
+                    ];
+                }
             }
         }
 
-        /** @var \yii\db\ActiveRecord $record */
-        if (!$record->save() && $record->hasErrors()) {
-            $errors = '';
-            foreach ($record->errors as $error) {
-                $errors .= (implode(' ', $error) . ' ');
+        $transaction = Yii::$app->db->beginTransaction();
+        try {
+            if (count($relationColumns)) {
+                foreach ($relationColumns as $relationName => $columns) {
+                    $relation = $record;
+                    foreach (explode('.', $relationName) as $relationPart) {
+                        $relation = $relation->$relationPart;
+                        if ($relation === null) {
+                            throw new BadRequestHttpException("Related model {$relationName} does not exist.");
+                        }
+                    }
+                    if (is_array($relation)) {
+                        throw new BadRequestHttpException('hasMany relation type isn\'t supported.');
+                    }
+
+                    foreach ($columns as $column) {
+                        $relation->$column['column'] = $column['value'];
+                    }
+                    if (!$relation->save()) {
+                        $errors = '';
+                        foreach ($relation->errors as $error) {
+                            $errors .= (implode(' ', $error) . ' ');
+                        }
+
+                        $transaction->rollBack();
+                        echo $errors;
+                        return;
+                    }
+                }
             }
-            echo $errors;
+
+            if (!$record->save()) {
+                $errors = '';
+                foreach ($record->errors as $error) {
+                    $errors .= (implode(' ', $error) . ' ');
+                }
+
+                $transaction->rollBack();
+                echo $errors;
+                return;
+            }
+        } catch (\Exception $e) {
+            $transaction->rollBack();
+            throw $e;
         }
+
+        $transaction->commit();
     }
 
     /**

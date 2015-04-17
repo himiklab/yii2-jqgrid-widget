@@ -1,6 +1,6 @@
 jqGrid Widget for Yii2
 ========================
-Yii2 wrapper for a powerful ajax-enabled grid [jqGrid](https://github.com/free-jqgrid/jqGrid) jQuery plugin.
+Yii2 wrapper for a powerful ajax-enabled grid [free jqGrid](https://github.com/free-jqgrid/jqGrid) jQuery plugin.
 
 Installation
 ------------

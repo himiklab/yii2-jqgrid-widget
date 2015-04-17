@@ -1,7 +1,7 @@
 <?php
 /**
  * @link https://github.com/himiklab/yii2-jqgrid-widget
- * @copyright Copyright (c) 2014 HimikLab
+ * @copyright Copyright (c) 2014-2015 HimikLab
  * @license http://opensource.org/licenses/MIT MIT
  */
 

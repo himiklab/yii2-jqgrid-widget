@@ -1,7 +1,7 @@
 <?php
 /**
  * @link https://github.com/himiklab/yii2-jqgrid-widget
- * @copyright Copyright (c) 2014 HimikLab
+ * @copyright Copyright (c) 2014-2015 HimikLab
  * @license http://opensource.org/licenses/MIT MIT
  */
 
@@ -26,7 +26,7 @@ trait JqGridActionTrait
     protected function getRequestData()
     {
         if (Yii::$app->request->method === 'POST') {
-            return Yii::$app->request->post();
+            return $this->getRealPOSTData();
         } elseif (Yii::$app->request->method === 'GET') {
             $requestData = Yii::$app->request->get();
             unset($requestData['action']); // delete service GET param
@@ -46,5 +46,21 @@ trait JqGridActionTrait
             'page' => $requestData['page'] - 1, // Yii`s DataProviders is zero-based, jqGrid not
             'pageSize' => $requestData['rows']
         ]);
+    }
+
+    /**
+     * @return array
+     */
+    protected function getRealPOSTData()
+    {
+        $pairs = explode('&', file_get_contents('php://input'));
+        $vars = array();
+        foreach ($pairs as $pair) {
+            $nv = explode('=', $pair);
+            $name = urldecode($nv[0]);
+            $value = urldecode($nv[1]);
+            $vars[$name] = $value;
+        }
+        return $vars;
     }
 }
