@@ -176,7 +176,6 @@ class JqGridActiveAction extends Action
         }
 
         /** @var \yii\db\ActiveRecord $record */
-        $record->save();
         if (!$record->save() && $record->hasErrors()) {
             $errors = '';
             foreach ($record->errors as $error) {
