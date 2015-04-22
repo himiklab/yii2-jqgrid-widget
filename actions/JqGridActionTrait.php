@@ -54,12 +54,16 @@ trait JqGridActionTrait
     protected function getRealPOSTData()
     {
         $pairs = explode('&', file_get_contents('php://input'));
-        $vars = array();
+        $vars = [];
         foreach ($pairs as $pair) {
-            $nv = explode('=', $pair);
-            $name = urldecode($nv[0]);
-            $value = urldecode($nv[1]);
-            $vars[$name] = $value;
+            $pairParts = explode('=', $pair);
+            $name = urldecode($pairParts[0]);
+            $value = urldecode($pairParts[1]);
+            if (preg_match('/(.+)\[\]$/', $name, $nameParts)) {
+                $vars[$nameParts[1]][] = $value;
+            } else {
+                $vars[$name] = $value;
+            }
         }
         return $vars;
     }
