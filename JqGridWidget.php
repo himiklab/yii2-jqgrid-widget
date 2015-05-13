@@ -9,6 +9,7 @@ namespace himiklab\jqgrid;
 
 use yii\base\InvalidParamException;
 use yii\base\Widget;
+use yii\db\ActiveRecord;
 use yii\helpers\Json;
 use yii\web\JsExpression;
 
@@ -200,7 +201,7 @@ class JqGridWidget extends Widget
 
     protected function preparePagerSettings($pagerUserSettings)
     {
-        if (empty($pagerUserSettings)) {
+        if ($pagerUserSettings === false) {
             return '{}';
         }
 
@@ -278,5 +279,18 @@ class JqGridWidget extends Widget
         }
 
         return Json::encode($filterToolbarSettings, $this->jsonSettings);
+    }
+
+    /**
+     * @param array|ActiveRecord $array
+     * @return string
+     */
+    public static function optionsGenerate($array)
+    {
+        $result = ':';
+        foreach ($array as $key => $option) {
+            $result .= ";{$key}:{$option}";
+        }
+        return $result;
     }
 }
