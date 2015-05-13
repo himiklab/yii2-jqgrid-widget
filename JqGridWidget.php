@@ -9,7 +9,6 @@ namespace himiklab\jqgrid;
 
 use yii\base\InvalidParamException;
 use yii\base\Widget;
-use yii\db\ActiveRecord;
 use yii\helpers\Json;
 use yii\web\JsExpression;
 
@@ -282,7 +281,7 @@ class JqGridWidget extends Widget
     }
 
     /**
-     * @param array|ActiveRecord $array
+     * @param array|\yii\db\ActiveRecord $array
      * @return string
      */
     public static function optionsGenerate($array)
