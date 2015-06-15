@@ -14,18 +14,18 @@ class JqGridAsset extends AssetBundle
 {
     public $sourcePath = '@bower/free-jqgrid';
 
-    public $css = [
-        'plugins/ui.multiselect.css',
-        'css/ui.jqgrid.css'
-    ];
-
     public function init()
     {
         parent::init();
 
+        $this->css = [
+            YII_DEBUG ? 'plugins/ui.multiselect.css' : 'plugins/min/ui.multiselect.css',
+            YII_DEBUG ? 'css/ui.jqgrid.css' : 'css/ui.jqgrid.min.css',
+        ];
+
         $this->js = [
-            'plugins/ui.multiselect.js',
-            YII_DEBUG ? 'js/jquery.jqGrid.src.js' : 'js/jquery.jqGrid.min.js'
+            YII_DEBUG ? 'plugins/ui.multiselect.js' : 'plugins/min/ui.multiselect.js',
+            YII_DEBUG ? 'js/jquery.jqgrid.src.js' : 'js/jquery.jqgrid.min.js'
         ];
         $this->registerLanguageAsset();
     }
