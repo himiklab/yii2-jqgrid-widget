@@ -389,7 +389,7 @@ class JqGridActiveAction extends Action
                     $query->$groupCondition([$rule['field'] => null]);
                     break;
                 case 'nn':
-                    $query->$groupCondition(['<>', $rule['field'], null]);
+                    $query->$groupCondition(['is not', $rule['field'], null]);
                     break;
                 case 'in':
                     $rule['data'] = explode(',', $rule['data']);
