@@ -10,6 +10,7 @@ namespace himiklab\jqgrid;
 use yii\base\InvalidParamException;
 use yii\base\Widget;
 use yii\helpers\Json;
+use yii\helpers\Url;
 use yii\web\JsExpression;
 
 /**
@@ -164,7 +165,7 @@ class JqGridWidget extends Widget
     {
         $widgetId = $this->id;
 
-        $gridSettings['url'] = $this->requestUrl . '?action=request';
+        $gridSettings['url'] = Url::to([$this->requestUrl,'action'=>'request']);
         $gridSettings['datatype'] = 'json';
         $gridSettings['iconSet'] = 'jQueryUI'; // OlegKi's version only
 
@@ -191,7 +192,7 @@ class JqGridWidget extends Widget
         }
         if ($this->enableCellEdit) {
             $gridSettings['cellEdit'] = true;
-            $gridSettings['cellurl'] = $this->requestUrl . '?action=edit';
+            $gridSettings['cellurl'] = Url::to([$this->requestUrl, 'action' => 'edit']);
         }
         $gridSettings = array_merge($gridSettings, $gridUserSettings);
 
@@ -220,7 +221,7 @@ class JqGridWidget extends Widget
 
             switch ($optionName) {
                 case 'edit':
-                    $editSettings['url'] = $this->requestUrl . '?action=edit';
+                    $editSettings['url'] = Url::to([$this->requestUrl, 'action'=> 'edit']);
                     $editSettings['afterSubmit'] = new JsExpression('
                     function(response){
                         return [response.responseText == "", response.responseText, null];
@@ -228,7 +229,7 @@ class JqGridWidget extends Widget
                     $pagerOptions['edit'] = array_merge($editSettings, $optionSettings);
                     break;
                 case 'add':
-                    $addSettings['url'] = $this->requestUrl . '?action=add';
+                    $addSettings['url'] = Url::to([$this->requestUrl, 'action'=>'add']);
                     $addSettings['afterSubmit'] = new JsExpression('
                     function(response){
                         return [response.responseText == "", response.responseText, null];
@@ -236,7 +237,7 @@ class JqGridWidget extends Widget
                     $pagerOptions['add'] = array_merge($addSettings, $optionSettings);
                     break;
                 case 'del':
-                    $delSettings['url'] = $this->requestUrl . '?action=del';
+                    $delSettings['url'] = Url::to([$this->requestUrl, 'action'=>'del']);
                     $delSettings['afterSubmit'] = new JsExpression('
                     function(response){
                         return [response.responseText == "", response.responseText, null];

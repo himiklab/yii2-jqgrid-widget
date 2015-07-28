@@ -47,7 +47,7 @@ use himiklab\jqgrid\JqGridWidget;
 use yii\helpers\Url;
 
 <?= JqGridWidget::widget([
-    'requestUrl' => Url::toRoute('jqgrid'),
+    'requestUrl' => Url::to('jqgrid'),
     'gridSettings' => [
         'colNames' => ['Title', 'Author', 'Language'],
         'colModel' => [
