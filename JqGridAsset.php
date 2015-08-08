@@ -39,6 +39,6 @@ class JqGridAsset extends AssetBundle
                 return;
             }
         }
-        $this->js[] = "/js/i18n/grid.locale-{$language}.js";
+        $this->js[] = "js/i18n/grid.locale-{$language}.js";
     }
 }
