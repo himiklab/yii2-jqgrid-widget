@@ -47,7 +47,7 @@ class JqGridActiveAction extends Action
     public $model;
 
     /**
-     * @var array $columns the columns being selected.
+     * @var array|callable $columns the columns being selected.
      * This is used to construct the SELECT clause in a SQL statement. If not set, it means selecting all columns.
      */
     public $columns = [];
@@ -67,6 +67,11 @@ class JqGridActiveAction extends Action
             throw new BadRequestHttpException('GET param `action` isn\'t set.');
         }
 
+        if (is_callable($this->columns)) {
+            $this->columns = call_user_func($this->columns);
+        }
+
+        /** @var array $this->columns */
         // add PK if it exist and not set to $this->columns
         $model = $this->model;
         $modelPK = $model::primaryKey();
