@@ -447,6 +447,7 @@ class JqGridActiveAction extends Action
                 if (preg_match('/(.+)\s(asc|desc)/', $sidx, $sidxMatch)) {
                     $this->prepareRelationField($query, $sidxMatch[1]);
 
+                    $sidxMatch[1] = trim($sidxMatch[1]);
                     $attributes[] = $sidxMatch[1];
                     $defaultOrder[$sidxMatch[1]] = ($sidxMatch[2] === 'asc' ? SORT_ASC : SORT_DESC);
                 } else {
