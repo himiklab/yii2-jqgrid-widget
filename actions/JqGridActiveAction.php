@@ -55,6 +55,9 @@ class JqGridActiveAction extends Action
     /** @var callable */
     public $scope;
 
+    /** @var array */
+    public $queryAliases = [];
+
     public function run()
     {
         if (!is_subclass_of($this->model, '\yii\db\ActiveRecord')) {
@@ -71,7 +74,6 @@ class JqGridActiveAction extends Action
             $this->columns = call_user_func($this->columns);
         }
 
-        /** @var array $this->columns */
         // add PK if it exist and not set to $this->columns
         $model = $this->model;
         $modelPK = $model::primaryKey();
@@ -363,6 +365,10 @@ class JqGridActiveAction extends Action
                 && !$model->isAttributeSafe($rule['field'])
             ) {
                 throw new BadRequestHttpException('Unsafe attribute.');
+            }
+
+            if (isset($this->queryAliases[$rule['field']])) {
+                $rule['field'] = $this->queryAliases[$rule['field']];
             }
 
             switch ($rule['op']) {
