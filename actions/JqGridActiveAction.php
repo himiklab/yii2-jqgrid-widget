@@ -371,6 +371,10 @@ class JqGridActiveAction extends Action
                 $rule['field'] = $this->queryAliases[$rule['field']];
             }
 
+            if ((strpos($rule['field'], '.')) === false) {
+                $rule['field'] = $model::tableName() . '.' . $rule['field'];
+            }
+
             switch ($rule['op']) {
                 case 'eq':
                     $query->$groupCondition([$rule['field'] => $rule['data']]);

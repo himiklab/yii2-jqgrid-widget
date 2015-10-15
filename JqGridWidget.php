@@ -165,7 +165,7 @@ class JqGridWidget extends Widget
     {
         $widgetId = $this->id;
 
-        $gridSettings['url'] = Url::to([$this->requestUrl,'action'=>'request']);
+        $gridSettings['url'] = Url::to([$this->requestUrl, 'action' => 'request']);
         $gridSettings['datatype'] = 'json';
         $gridSettings['iconSet'] = 'jQueryUI'; // OlegKi's version only
 
@@ -221,7 +221,7 @@ class JqGridWidget extends Widget
 
             switch ($optionName) {
                 case 'edit':
-                    $editSettings['url'] = Url::to([$this->requestUrl, 'action'=> 'edit']);
+                    $editSettings['url'] = Url::to([$this->requestUrl, 'action' => 'edit']);
                     $editSettings['afterSubmit'] = new JsExpression('
                     function(response){
                         return [response.responseText == "", response.responseText, null];
@@ -229,7 +229,7 @@ class JqGridWidget extends Widget
                     $pagerOptions['edit'] = array_merge($editSettings, $optionSettings);
                     break;
                 case 'add':
-                    $addSettings['url'] = Url::to([$this->requestUrl, 'action'=>'add']);
+                    $addSettings['url'] = Url::to([$this->requestUrl, 'action' => 'add']);
                     $addSettings['afterSubmit'] = new JsExpression('
                     function(response){
                         return [response.responseText == "", response.responseText, null];
@@ -237,7 +237,7 @@ class JqGridWidget extends Widget
                     $pagerOptions['add'] = array_merge($addSettings, $optionSettings);
                     break;
                 case 'del':
-                    $delSettings['url'] = Url::to([$this->requestUrl, 'action'=>'del']);
+                    $delSettings['url'] = Url::to([$this->requestUrl, 'action' => 'del']);
                     $delSettings['afterSubmit'] = new JsExpression('
                     function(response){
                         return [response.responseText == "", response.responseText, null];
