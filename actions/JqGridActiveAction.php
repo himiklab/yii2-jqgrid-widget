@@ -545,11 +545,21 @@ class JqGridActiveAction extends Action
                 $currentValue = $currentRecord->$attribute;
                 if (is_object($currentValue)) {
                     $result[] = $currentValue;
+                } elseif (is_array($currentValue)) {
+                    if ($result === null) {
+                        $result = $currentValue;
+                    } else {
+                        $result = array_merge($currentValue, $result);
+                    }
                 } else {
                     $result .= ($currentRecord->$attribute . $separator);
                 }
             }
-            return trim($result, $separator);
+            if (is_string($result)) {
+                return trim($result, $separator);
+            } else {
+                return $result;
+            }
         } else {
             return $record->$attribute;
         }
