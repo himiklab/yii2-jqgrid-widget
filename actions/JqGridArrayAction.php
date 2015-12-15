@@ -40,7 +40,7 @@ class JqGridArrayAction extends Action
 {
     use JqGridActionTrait;
 
-    /** @var array $models ArrayDataProvider's models property */
+    /** @var array|callable $models ArrayDataProvider's models property */
     public $models;
 
     public function run()
@@ -65,6 +65,10 @@ class JqGridArrayAction extends Action
      */
     protected function requestAction($requestData)
     {
+        if (is_callable($this->models)) {
+            $this->models = call_user_func($this->models);
+        }
+        
         $dataProvider = new ArrayDataProvider(
             [
                 'allModels' => $this->models,
