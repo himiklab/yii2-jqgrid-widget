@@ -215,26 +215,16 @@ class JqGridActiveAction extends Action
                         $relation->$column['column'] = $column['value'];
                     }
                     if (!$relation->save()) {
-                        $errors = '';
-                        foreach ($relation->errors as $error) {
-                            $errors .= (implode(' ', $error) . ' ');
-                        }
-
                         $transaction->rollBack();
-                        echo $errors;
+                        $this->renderModelErrors($relation);
                         return;
                     }
                 }
             }
 
             if (!$record->save()) {
-                $errors = '';
-                foreach ($record->errors as $error) {
-                    $errors .= (implode(' ', $error) . ' ');
-                }
-
                 $transaction->rollBack();
-                echo $errors;
+                $this->renderModelErrors($record);
                 return;
             }
         } catch (\Exception $e) {
@@ -266,11 +256,7 @@ class JqGridActiveAction extends Action
             }
         }
         if (!$model->save() && $model->hasErrors()) {
-            $errors = '';
-            foreach ($model->errors as $error) {
-                $errors .= (implode(' ', $error) . ' ');
-            }
-            echo $errors;
+            $this->renderModelErrors($model);
         }
     }
 
@@ -563,5 +549,18 @@ class JqGridActiveAction extends Action
         } else {
             return $record->$attribute;
         }
+    }
+    
+    /**
+     * @param \yii\db\ActiveRecord $model
+     * @return string
+     */
+    protected function renderModelErrors($model)
+    {
+        $errors = '';
+        foreach ($model->errors as $error) {
+            $errors .= (implode(' ', $error) . ' ');
+        }
+        echo $errors;
     }
 }
