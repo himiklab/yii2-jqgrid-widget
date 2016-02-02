@@ -180,11 +180,13 @@ class JqGridActiveAction extends Action
         }
 
         $relationColumns = [];
+        $recordAttributes = [];
         foreach ($this->columns as $column) {
             if (isset($requestData[$column])) {
                 if ((strpos($column, '.')) === false) {
                     // no relation
                     $record->$column = $requestData[$column];
+                    $recordAttributes[] = $column;
                 } else {
                     // with relation
                     preg_match('/(.+)\.([^\.]+)/', $column, $matches);
@@ -201,6 +203,7 @@ class JqGridActiveAction extends Action
             if (count($relationColumns)) {
                 foreach ($relationColumns as $relationName => $columns) {
                     $relation = $record;
+                    $relationAttributes = [];
                     foreach (explode('.', $relationName) as $relationPart) {
                         $relation = $relation->$relationPart;
                         if ($relation === null) {
@@ -213,8 +216,9 @@ class JqGridActiveAction extends Action
 
                     foreach ($columns as $column) {
                         $relation->$column['column'] = $column['value'];
+                        $relationAttributes = [$column['column']];
                     }
-                    if (!$relation->save()) {
+                    if (!$relation->save(true, $relationAttributes)) {
                         $transaction->rollBack();
                         $this->renderModelErrors($relation);
                         return;
@@ -222,7 +226,7 @@ class JqGridActiveAction extends Action
                 }
             }
 
-            if (!$record->save()) {
+            if (!$record->save(true, $recordAttributes)) {
                 $transaction->rollBack();
                 $this->renderModelErrors($record);
                 return;
