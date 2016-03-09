@@ -52,6 +52,12 @@ class JqGridWidget extends Widget
     /** @var string */
     public $requestUrl = 'jqgrid';
 
+    /** @var null */
+    public $requestId = null;
+
+    /** @var bool */
+    public $inlineNav = false;
+
     /** @var bool */
     public $enablePager = true;
 
@@ -104,9 +110,20 @@ class JqGridWidget extends Widget
 
         $script = "jQuery(\"#jqGrid-{$widgetId}\").jqGrid({$this->prepareGridSettings($this->gridSettings)})";
         if ($this->enablePager) {
-            $script .= PHP_EOL .
-                ".navGrid('#jqGrid-pager-{$widgetId}', {$this->preparePagerSettings($this->pagerSettings)})";
+            if ($this->inlineNav) {
+                if ($this->pagerSettings['del'])
+                    $script .= PHP_EOL .
+                        ".navGrid('#jqGrid-pager-{$widgetId}', {'del':true,'edit':false,'add':false,'search':false})";
+
+                $script .= PHP_EOL .
+                    ".inlineNav('#jqGrid-pager-{$widgetId}', {$this->preparePagerSettings($this->pagerSettings)})";
+            }
+            else {
+                $script .= PHP_EOL .
+                    ".navGrid('#jqGrid-pager-{$widgetId}', {$this->preparePagerSettings($this->pagerSettings)})";
+            }
         }
+
         if ($this->enableFilterToolbar) {
             $script .= PHP_EOL .
                 ".filterToolbar({$this->prepareToolbarSettings($this->filterToolbarSettings)})";
@@ -165,7 +182,7 @@ class JqGridWidget extends Widget
     {
         $widgetId = $this->id;
 
-        $gridSettings['url'] = Url::to([$this->requestUrl, 'action' => 'request']);
+        $gridSettings['url'] = Url::to([$this->requestUrl, 'action' => 'request', 'id'=> (isset($this->requestId) ? $this->requestId : null)]);
         $gridSettings['datatype'] = 'json';
         $gridSettings['iconSet'] = 'jQueryUI'; // OlegKi's version only
 
@@ -219,29 +236,52 @@ class JqGridWidget extends Widget
                 $optionSettings = [];
             }
 
+            // if we have gridSettings["editurl"] == 'clientArray'
+            // we do not post changed data to server
             switch ($optionName) {
                 case 'edit':
-                    $editSettings['url'] = Url::to([$this->requestUrl, 'action' => 'edit']);
-                    $editSettings['afterSubmit'] = new JsExpression('
-                    function(response){
-                        return [response.responseText == "", response.responseText, null];
-                    }');
+                    $editSettings = [];
+                    if ($this->gridSettings["editurl"] != 'clientArray') {
+                        $editSettings['url'] = Url::to([$this->requestUrl, 'action' => 'edit']);
+                        $editSettings['afterSubmit'] = new JsExpression('
+                            function(response){
+                                return [response.responseText == "", response.responseText, null];
+                            }');
+                    }
+                    else {
+                        $editSettings['closeAfterEdit'] = 'true';
+                    }
+
                     $pagerOptions['edit'] = array_merge($editSettings, $optionSettings);
                     break;
                 case 'add':
-                    $addSettings['url'] = Url::to([$this->requestUrl, 'action' => 'add']);
-                    $addSettings['afterSubmit'] = new JsExpression('
-                    function(response){
-                        return [response.responseText == "", response.responseText, null];
-                    }');
+                    $addSettings = [];
+                    if ($this->gridSettings["editurl"] != 'clientArray') {
+                        $addSettings['url'] = Url::to([$this->requestUrl, 'action' => 'add']);
+                        $addSettings['afterSubmit'] = new JsExpression('
+                            function(response){
+                                return [response.responseText == "", response.responseText, null];
+                            }');
+                    }
+                    else {
+                        $addSettings['closeAfterAdd'] = 'true';
+                    }
+
                     $pagerOptions['add'] = array_merge($addSettings, $optionSettings);
                     break;
                 case 'del':
-                    $delSettings['url'] = Url::to([$this->requestUrl, 'action' => 'del']);
-                    $delSettings['afterSubmit'] = new JsExpression('
-                    function(response){
-                        return [response.responseText == "", response.responseText, null];
-                    }');
+                    $delSettings = [];
+                    if ($this->gridSettings["editurl"] != 'clientArray') {
+                        $delSettings['url'] = Url::to([$this->requestUrl, 'action' => 'del']);
+                        $delSettings['afterSubmit'] = new JsExpression('
+                            function(response){
+                                return [response.responseText == "", response.responseText, null];
+                            }');
+                    }
+                    else {
+                        $delSettings['closeAfterDelete'] = 'true';
+                    }
+
                     $pagerOptions['del'] = array_merge($delSettings, $optionSettings);
                     break;
                 case 'search':
