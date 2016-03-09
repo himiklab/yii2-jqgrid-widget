@@ -520,7 +520,7 @@ class JqGridActiveAction extends Action
      * @param string $separator
      * @return array|null|string
      */
-    protected function getValue($record, $attribute, $separator = PHP_EOL)
+    protected function getValue($record, $attribute, $separator = "\n")
     {
         if (($pointPosition = strrpos($attribute, '.')) !== false) {
             $record = $this->getValue($record, substr($attribute, 0, $pointPosition));
