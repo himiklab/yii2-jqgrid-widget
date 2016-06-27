@@ -41,6 +41,8 @@ use yii\web\Response;
  */
 class JqGridActiveAction extends Action
 {
+    const COMPOSITE_KEY_DELIMITER = '%';
+
     use JqGridActionTrait;
 
     /** @var string|\yii\db\ActiveRecord $model */
@@ -149,7 +151,11 @@ class JqGridActiveAction extends Action
         foreach ($dataProvider->getModels() as $record) {
             /** @var \yii\db\ActiveRecord $record */
             if ($record->primaryKey !== null) {
-                $response['rows'][$i]['id'] = $record->primaryKey;
+                if (is_array($record->primaryKey)) {
+                    $response['rows'][$i]['id'] = implode(self::COMPOSITE_KEY_DELIMITER, $record->primaryKey);
+                } else {
+                    $response['rows'][$i]['id'] = $record->primaryKey;
+                }
             }
 
             foreach ($this->columns as $modelAttribute) {
@@ -174,8 +180,16 @@ class JqGridActiveAction extends Action
             throw new BadRequestHttpException('Id param isn\'t set.');
         }
 
+        $modelPK = $model::primaryKey();
+        if (count($modelPK) > 1) {
+            $idParts = explode(self::COMPOSITE_KEY_DELIMITER, $requestData['id']);
+            $recordCondition = array_combine($modelPK, $idParts);
+        } else {
+            $recordCondition = $requestData['id'];
+        }
+
         /** @var \yii\db\ActiveRecord $record */
-        if (($record = $model::findOne($requestData['id'])) === null) {
+        if (($record = $model::findOne($recordCondition)) === null) {
             return;
         }
 
@@ -251,7 +265,7 @@ class JqGridActiveAction extends Action
             throw new BadRequestHttpException('Id param isn\'t set.');
         }
         if ($requestData['id'] === '_empty') {
-            unset ($requestData['id']);
+            unset($requestData['id']);
         }
 
         foreach ($this->columns as $column) {
@@ -278,8 +292,18 @@ class JqGridActiveAction extends Action
             throw new BadRequestHttpException('Id param isn\'t set.');
         }
 
-        foreach (explode(',', $requestData['id']) as $id) {
-            if (($currentModel = $model::findOne($id)) !== null) {
+        $modelPK = $model::primaryKey();
+        $deleteIds = explode(',', $requestData['id']);
+        if (count($modelPK) > 1) {
+            foreach ($deleteIds as &$currentCompositeId) {
+                $idParts = explode(self::COMPOSITE_KEY_DELIMITER, $currentCompositeId);
+                $currentCompositeId = array_combine($modelPK, $idParts);
+            }
+            unset($currentCompositeId);
+        }
+
+        foreach ($deleteIds as $currentId) {
+            if (($currentModel = $model::findOne($currentId)) !== null) {
                 /** @var \yii\db\ActiveRecord $currentModel */
                 $currentModel->delete();
             } else {
@@ -554,7 +578,7 @@ class JqGridActiveAction extends Action
             return $record->$attribute;
         }
     }
-    
+
     /**
      * @param \yii\db\ActiveRecord $model
      * @return string
