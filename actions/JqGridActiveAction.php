@@ -305,7 +305,10 @@ class JqGridActiveAction extends Action
         foreach ($deleteIds as $currentId) {
             if (($currentModel = $model::findOne($currentId)) !== null) {
                 /** @var \yii\db\ActiveRecord $currentModel */
-                $currentModel->delete();
+                if (!$currentModel->delete()) {
+                    $this->renderModelErrors($currentModel);
+                    return;
+                }
             } else {
                 continue;
             }
