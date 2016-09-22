@@ -269,7 +269,7 @@ class JqGridActiveAction extends Action
         }
 
         foreach ($this->columns as $column) {
-            if (isset($requestData[$column])) {
+            if (isset($requestData[$column]) && !empty($requestData[$column])) {
                 $model->$column = $requestData[$column];
             }
         }
