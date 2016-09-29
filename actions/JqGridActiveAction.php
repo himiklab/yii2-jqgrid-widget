@@ -392,6 +392,11 @@ class JqGridActiveAction extends Action
                 $rule['field'] = $model::tableName() . '.' . $rule['field'];
             }
 
+            // null value in filters
+            if ($rule['op'] === 'eq' && $rule['data'] === 'null') {
+                $rule['op'] = 'nu';
+            }
+
             switch ($rule['op']) {
                 case 'eq':
                     $query->$groupCondition([$rule['field'] => $rule['data']]);
