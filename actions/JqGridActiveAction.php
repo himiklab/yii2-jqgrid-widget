@@ -60,6 +60,9 @@ class JqGridActiveAction extends Action
     /** @var array */
     public $queryAliases = [];
 
+    /** @var array */
+    public $customSearchOptions = [];
+
     public function run()
     {
         if (!is_subclass_of($this->model, '\yii\db\ActiveRecord')) {
@@ -91,7 +94,7 @@ class JqGridActiveAction extends Action
         if (isset($requestData['visibleColumns'])) {
             $this->columns = array_filter($this->columns, function ($column) use ($modelPK, $requestData) {
                 return in_array($column, $requestData['visibleColumns'])
-                || (isset($modelPK[0]) && $column == $modelPK[0]);
+                    || (isset($modelPK[0]) && $column == $modelPK[0]);
             });
         }
 
@@ -384,6 +387,7 @@ class JqGridActiveAction extends Action
                 throw new BadRequestHttpException('Unsafe attribute.');
             }
 
+            $rule['fieldInitial'] = $rule['field'];
             if (isset($this->queryAliases[$rule['field']])) {
                 $rule['field'] = $this->queryAliases[$rule['field']];
             }
@@ -397,61 +401,67 @@ class JqGridActiveAction extends Action
                 $rule['op'] = 'nu';
             }
 
-            switch ($rule['op']) {
-                case 'eq':
-                    $query->$groupCondition([$rule['field'] => $rule['data']]);
-                    break;
-                case 'ne':
-                    $query->$groupCondition(['<>', $rule['field'], $rule['data']]);
-                    break;
-                case 'bw':
-                    $query->$groupCondition(['like', $rule['field'], "{$rule['data']}%", false]);
-                    break;
-                case 'bn':
-                    $query->$groupCondition(['not like', $rule['field'], "{$rule['data']}%", false]);
-                    break;
-                case 'ew':
-                    $query->$groupCondition(['like', $rule['field'], "%{$rule['data']}", false]);
-                    break;
-                case 'en':
-                    $query->$groupCondition(['not like', $rule['field'], "%{$rule['data']}", false]);
-                    break;
-                case 'cn':
-                    $query->$groupCondition(['like', $rule['field'], $rule['data']]);
-                    break;
-                case 'nc':
-                    $query->$groupCondition(['not like', $rule['field'], $rule['data']]);
-                    break;
-                case 'nu':
-                    $query->$groupCondition([$rule['field'] => null]);
-                    break;
-                case 'nn':
-                    $query->$groupCondition(['is not', $rule['field'], null]);
-                    break;
-                case 'in':
-                    $rule['data'] = explode(',', $rule['data']);
-                    array_walk($rule['data'], 'trim');
-                    $query->$groupCondition(['in', $rule['field'], $rule['data']]);
-                    break;
-                case 'ni':
-                    $rule['data'] = explode(',', $rule['data']);
-                    array_walk($rule['data'], 'trim');
-                    $query->$groupCondition(['not in', $rule['field'], $rule['data']]);
-                    break;
-                case 'lt':
-                    $query->$groupCondition(['<', $rule['field'], $rule['data']]);
-                    break;
-                case 'le':
-                    $query->$groupCondition(['<=', $rule['field'], $rule['data']]);
-                    break;
-                case 'gt':
-                    $query->$groupCondition(['>', $rule['field'], $rule['data']]);
-                    break;
-                case 'ge':
-                    $query->$groupCondition(['>=', $rule['field'], $rule['data']]);
-                    break;
-                default:
-                    throw new BadRequestHttpException('Unsupported value in `op` or `searchOper` param');
+            if (isset($this->customSearchOptions[$rule['op']][$rule['fieldInitial']])) {
+                /** @var callable $searchFunction */
+                $searchFunction = $this->customSearchOptions[$rule['op']][$rule['fieldInitial']];
+                $searchFunction($rule, $query, $groupCondition);
+            } else {
+                switch ($rule['op']) {
+                    case 'eq':
+                        $query->$groupCondition([$rule['field'] => $rule['data']]);
+                        break;
+                    case 'ne':
+                        $query->$groupCondition(['<>', $rule['field'], $rule['data']]);
+                        break;
+                    case 'bw':
+                        $query->$groupCondition(['like', $rule['field'], "{$rule['data']}%", false]);
+                        break;
+                    case 'bn':
+                        $query->$groupCondition(['not like', $rule['field'], "{$rule['data']}%", false]);
+                        break;
+                    case 'ew':
+                        $query->$groupCondition(['like', $rule['field'], "%{$rule['data']}", false]);
+                        break;
+                    case 'en':
+                        $query->$groupCondition(['not like', $rule['field'], "%{$rule['data']}", false]);
+                        break;
+                    case 'cn':
+                        $query->$groupCondition(['like', $rule['field'], $rule['data']]);
+                        break;
+                    case 'nc':
+                        $query->$groupCondition(['not like', $rule['field'], $rule['data']]);
+                        break;
+                    case 'nu':
+                        $query->$groupCondition([$rule['field'] => null]);
+                        break;
+                    case 'nn':
+                        $query->$groupCondition(['is not', $rule['field'], null]);
+                        break;
+                    case 'in':
+                        $rule['data'] = explode(',', $rule['data']);
+                        array_walk($rule['data'], 'trim');
+                        $query->$groupCondition(['in', $rule['field'], $rule['data']]);
+                        break;
+                    case 'ni':
+                        $rule['data'] = explode(',', $rule['data']);
+                        array_walk($rule['data'], 'trim');
+                        $query->$groupCondition(['not in', $rule['field'], $rule['data']]);
+                        break;
+                    case 'lt':
+                        $query->$groupCondition(['<', $rule['field'], $rule['data']]);
+                        break;
+                    case 'le':
+                        $query->$groupCondition(['<=', $rule['field'], $rule['data']]);
+                        break;
+                    case 'gt':
+                        $query->$groupCondition(['>', $rule['field'], $rule['data']]);
+                        break;
+                    case 'ge':
+                        $query->$groupCondition(['>=', $rule['field'], $rule['data']]);
+                        break;
+                    default:
+                        throw new BadRequestHttpException('Unsupported value in `op` or `searchOper` param');
+                }
             }
         }
     }
