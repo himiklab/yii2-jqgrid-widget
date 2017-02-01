@@ -58,7 +58,11 @@ trait JqGridActionTrait
         foreach ($pairs as $pair) {
             $pairParts = explode('=', $pair);
             $name = urldecode($pairParts[0]);
+
             $value = urldecode($pairParts[1]);
+            if ($value === 'null') {
+                $value = null;
+            }
             if (preg_match('/(.+)\[\]$/', $name, $nameParts)) {
                 $vars[$nameParts[1]][] = $value;
             } else {
