@@ -353,7 +353,16 @@ class JqGridActiveAction extends Action
             }
         }
 
-        $this->addSearchOptionsRecursively($query, $searchData);
+        if (isset($searchData['groupOp'])) {
+            $baseCondition = 'andWhere';
+            if ($searchData['groupOp'] === 'OR') {
+                $baseCondition = 'orWhere';
+            } elseif ($searchData['groupOp'] !== 'AND') {
+                throw new BadRequestHttpException('Unsupported value in `groupOp` param');
+            }
+
+            $this->addSearchOptionsRecursively($query, $searchData, $baseCondition);
+        }
     }
 
     /**
@@ -361,20 +370,21 @@ class JqGridActiveAction extends Action
      * @param array $searchData
      * @throws BadRequestHttpException
      */
-    protected function addSearchOptionsRecursively($query, $searchData)
+    protected function addSearchOptionsRecursively($query, $searchData, $baseCondition)
     {
         $model = $this->model;
 
-        $groupCondition = 'andWhere';
+        $ruleArray = [];
         if (isset($searchData['groupOp'])) {
             if (isset($searchData['groups'])) {
                 foreach ($searchData['groups'] as $group) {
-                    $this->addSearchOptionsRecursively($query, $group);
+                    $this->addSearchOptionsRecursively($query, $group, $baseCondition);
                 }
             }
 
+            $ruleArray = ['and'];
             if ($searchData['groupOp'] === 'OR') {
-                $groupCondition = 'orWhere';
+                $ruleArray = ['or'];
             } elseif ($searchData['groupOp'] !== 'AND') {
                 throw new BadRequestHttpException('Unsupported value in `groupOp` param');
             }
@@ -404,65 +414,68 @@ class JqGridActiveAction extends Action
             if (isset($this->customSearchOptions[$rule['op']][$rule['fieldInitial']])) {
                 /** @var callable $searchFunction */
                 $searchFunction = $this->customSearchOptions[$rule['op']][$rule['fieldInitial']];
-                $searchFunction($rule, $query, $groupCondition);
+                $searchFunction($rule, $query, $baseCondition);
             } else {
                 switch ($rule['op']) {
                     case 'eq':
-                        $query->$groupCondition([$rule['field'] => $rule['data']]);
+                        $ruleArray[] = [$rule['field'] => $rule['data']];
                         break;
                     case 'ne':
-                        $query->$groupCondition(['<>', $rule['field'], $rule['data']]);
+                        $ruleArray[] = ['<>', $rule['field'], $rule['data']];
                         break;
                     case 'bw':
-                        $query->$groupCondition(['like', $rule['field'], "{$rule['data']}%", false]);
+                        $ruleArray[] = ['like', $rule['field'], "{$rule['data']}%", false];
                         break;
                     case 'bn':
-                        $query->$groupCondition(['not like', $rule['field'], "{$rule['data']}%", false]);
+                        $ruleArray[] = ['not like', $rule['field'], "{$rule['data']}%", false];
                         break;
                     case 'ew':
-                        $query->$groupCondition(['like', $rule['field'], "%{$rule['data']}", false]);
+                        $ruleArray[] = ['like', $rule['field'], "%{$rule['data']}", false];
                         break;
                     case 'en':
-                        $query->$groupCondition(['not like', $rule['field'], "%{$rule['data']}", false]);
+                        $ruleArray[] = ['not like', $rule['field'], "%{$rule['data']}", false];
                         break;
                     case 'cn':
-                        $query->$groupCondition(['like', $rule['field'], $rule['data']]);
+                        $ruleArray[] = ['like', $rule['field'], $rule['data']];
                         break;
                     case 'nc':
-                        $query->$groupCondition(['not like', $rule['field'], $rule['data']]);
+                        $ruleArray[] = ['not like', $rule['field'], $rule['data']];
                         break;
                     case 'nu':
-                        $query->$groupCondition([$rule['field'] => null]);
+                        $ruleArray[] = [$rule['field'] => null];
                         break;
                     case 'nn':
-                        $query->$groupCondition(['is not', $rule['field'], null]);
+                        $ruleArray[] = ['is not', $rule['field'], null];
                         break;
                     case 'in':
                         $rule['data'] = explode(',', $rule['data']);
                         array_walk($rule['data'], 'trim');
-                        $query->$groupCondition(['in', $rule['field'], $rule['data']]);
+                        $ruleArray[] = ['in', $rule['field'], $rule['data']];
                         break;
                     case 'ni':
                         $rule['data'] = explode(',', $rule['data']);
                         array_walk($rule['data'], 'trim');
-                        $query->$groupCondition(['not in', $rule['field'], $rule['data']]);
+                        $ruleArray[] = ['not in', $rule['field'], $rule['data']];
                         break;
                     case 'lt':
-                        $query->$groupCondition(['<', $rule['field'], $rule['data']]);
+                        $ruleArray[] = ['<', $rule['field'], $rule['data']];
                         break;
                     case 'le':
-                        $query->$groupCondition(['<=', $rule['field'], $rule['data']]);
+                        $ruleArray[] = ['<=', $rule['field'], $rule['data']];
                         break;
                     case 'gt':
-                        $query->$groupCondition(['>', $rule['field'], $rule['data']]);
+                        $ruleArray[] = ['>', $rule['field'], $rule['data']];
                         break;
                     case 'ge':
-                        $query->$groupCondition(['>=', $rule['field'], $rule['data']]);
+                        $ruleArray[] = ['>=', $rule['field'], $rule['data']];
                         break;
                     default:
                         throw new BadRequestHttpException('Unsupported value in `op` or `searchOper` param');
                 }
             }
+        }
+        if (count($ruleArray)) {
+            $query->$baseCondition($ruleArray);
         }
     }
 
