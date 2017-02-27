@@ -19,12 +19,12 @@ class JqGridAsset extends AssetBundle
         parent::init();
 
         $this->css = [
-            YII_DEBUG ? 'plugins/ui.multiselect.css' : 'plugins/ui.multiselect.min.css',
+            YII_DEBUG ? 'plugins/css/ui.multiselect.css' : 'plugins/css/ui.multiselect.min.css',
             YII_DEBUG ? 'css/ui.jqgrid.css' : 'css/ui.jqgrid.min.css',
         ];
 
         $this->js = [
-            YII_DEBUG ? 'plugins/ui.multiselect.js' : 'plugins/ui.multiselect.min.js',
+            YII_DEBUG ? 'plugins/ui.multiselect.js' : 'plugins/min/ui.multiselect.js',
             YII_DEBUG ? 'js/jquery.jqgrid.src.js' : 'js/jquery.jqgrid.min.js'
         ];
         $this->registerLanguageAsset();
