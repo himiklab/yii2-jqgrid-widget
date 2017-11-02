@@ -118,7 +118,7 @@ class JqGridActiveAction extends Action
 
     /**
      * @param array $requestData
-     * @return string JSON answer
+     * @return array JSON answer
      * @throws BadRequestHttpException
      */
     protected function requestAction($requestData)
@@ -391,11 +391,7 @@ class JqGridActiveAction extends Action
         }
 
         foreach ($searchData['rules'] as $rule) {
-            if (!$this->prepareRelationField($query, $rule['field'])
-                && !$model->isAttributeSafe($rule['field'])
-            ) {
-                throw new BadRequestHttpException('Unsafe attribute.');
-            }
+            $this->prepareRelationField($query, $rule['field']);
 
             $rule['fieldInitial'] = $rule['field'];
             if (isset($this->queryAliases[$rule['field']])) {
@@ -535,7 +531,7 @@ class JqGridActiveAction extends Action
      */
     protected function prepareRelationField($query, &$field)
     {
-        if ((strpos($field, '.')) === false) {
+        if (strpos($field, '.') === false) {
             return false;
         }
         $model = $this->model;
@@ -561,9 +557,6 @@ class JqGridActiveAction extends Action
         $query->joinWith(trim($fullRelation, '.'));
 
         $attribute = $fieldElements[$fieldElementsCount - 1];
-        if (!$model->isAttributeSafe($attribute)) {
-            throw new BadRequestHttpException('Unsafe relation attribute.');
-        }
 
         $field = $model::tableName() . '.' . $attribute;
         return true;
@@ -584,7 +577,8 @@ class JqGridActiveAction extends Action
 
         if ($record === null) {
             return null;
-        } elseif (is_array($record)) {
+        }
+        if (is_array($record)) {
             $result = null;
             foreach ($record as $currentRecord) {
                 $currentValue = $currentRecord->$attribute;
@@ -604,17 +598,16 @@ class JqGridActiveAction extends Action
             }
             if (is_string($result)) {
                 return trim($result, $separator);
-            } else {
-                return $result;
             }
-        } else {
-            return $record->$attribute;
+
+            return $result;
         }
+
+        return $record->$attribute;
     }
 
     /**
      * @param \yii\db\ActiveRecord $model
-     * @return string
      */
     protected function renderModelErrors($model)
     {

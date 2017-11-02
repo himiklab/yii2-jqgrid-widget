@@ -60,7 +60,7 @@ class JqGridArrayAction extends Action
 
     /**
      * @param array $requestData
-     * @return string JSON answer
+     * @return array JSON answer
      * @throws InvalidConfigException
      */
     protected function requestAction($requestData)

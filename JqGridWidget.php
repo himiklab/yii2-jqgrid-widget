@@ -181,9 +181,9 @@ class JqGridWidget extends Widget
                         }
                     }
                     visibleColumns = visibleColumns.concat(" .
-                Json::encode($this->hiddenColumnsOptimizationExclusion, $this->jsonSettings) . ");
+                Json::encode($this->hiddenColumnsOptimizationExclusion, $this->jsonSettings) . ');
                     return jQuery.extend({}, postData, {visibleColumns: visibleColumns});
-                }"
+                }'
             );
         }
         $gridSettings['mtype'] = $this->requestMethod === self::REQUEST_METHOD_POST ? 'POST' : 'GET';
@@ -215,7 +215,8 @@ class JqGridWidget extends Widget
         foreach ($pagerUserSettings as $optionName => $optionSettings) {
             if ($optionSettings === false) {
                 continue;
-            } elseif ($optionSettings === true) {
+            }
+            if ($optionSettings === true) {
                 $optionSettings = [];
             }
 

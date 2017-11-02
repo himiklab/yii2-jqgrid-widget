@@ -27,13 +27,14 @@ trait JqGridActionTrait
     {
         if (Yii::$app->request->method === 'POST') {
             return $this->getRealPOSTData();
-        } elseif (Yii::$app->request->method === 'GET') {
+        }
+        if (Yii::$app->request->method === 'GET') {
             $requestData = Yii::$app->request->get();
             unset($requestData['action']); // delete service GET param
             return $requestData;
-        } else {
-            throw new BadRequestHttpException('Unsupported request method.');
         }
+
+        throw new BadRequestHttpException('Unsupported request method.');
     }
 
     /**
@@ -69,6 +70,7 @@ trait JqGridActionTrait
                 $vars[$name] = $value;
             }
         }
+
         return $vars;
     }
 }

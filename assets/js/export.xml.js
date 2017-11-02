@@ -24,12 +24,12 @@
             });
 
             xmlContent += "</Table>\r\n"
-            + "</Worksheet>\r\n"
-            + "</Workbook>";
+                + "</Worksheet>\r\n"
+                + "</Workbook>";
 
             var link = document.createElement("a");
             var blob = new Blob([xmlContent]);
-            link.href =  URL.createObjectURL(blob);;
+            link.href = URL.createObjectURL(blob);
             link.style = "visibility:hidden";
             link.download = fileName;
             document.body.appendChild(link);
