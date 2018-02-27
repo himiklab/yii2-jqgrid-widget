@@ -7,7 +7,7 @@
 
 namespace himiklab\jqgrid;
 
-use yii\base\InvalidParamException;
+use yii\base\InvalidArgumentException;
 use yii\base\Widget;
 use yii\helpers\Json;
 use yii\helpers\Url;
@@ -252,7 +252,7 @@ class JqGridWidget extends Widget
                     $pagerOptions['view'] = $optionSettings;
                     break;
                 default:
-                    throw new InvalidParamException("Invalid param `$optionName` in pager settings");
+                    throw new InvalidArgumentException("Invalid param `$optionName` in pager settings");
             }
         }
 
