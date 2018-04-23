@@ -8,6 +8,7 @@
 namespace himiklab\jqgrid;
 
 use yii\base\InvalidArgumentException;
+use yii\base\InvalidConfigException;
 use yii\base\Widget;
 use yii\helpers\Json;
 use yii\helpers\Url;
@@ -70,6 +71,9 @@ class JqGridWidget extends Widget
     /** @var bool */
     public $enableHiddenColumnsOptimization = false;
 
+    /** @var bool */
+    public $reloadAfterCellEdit = false;
+
     /** @var array */
     public $filterToolbarSettings = [];
 
@@ -92,6 +96,10 @@ class JqGridWidget extends Widget
         parent::init();
         $view = $this->getView();
         $widgetId = $this->id;
+
+        if ($this->reloadAfterCellEdit && !$this->enableCellEdit) {
+            throw new InvalidConfigException('reloadAfterCellEdit without enableCellEdit.');
+        }
 
         if (isset($this->gridSettings['iconSet']) && $this->gridSettings['iconSet'] === 'fontAwesome') {
             $useFontAwesome = true;
@@ -193,6 +201,9 @@ class JqGridWidget extends Widget
         if ($this->enableCellEdit) {
             $gridSettings['cellEdit'] = true;
             $gridSettings['cellurl'] = Url::to([$this->requestUrl, 'action' => 'edit']);
+            if ($this->reloadAfterCellEdit) {
+                $gridSettings['afterSaveCell'] = new JsExpression('function(){jQuery(this).trigger("reloadGrid");}');
+            }
         }
         $gridSettings = array_merge($gridSettings, $gridUserSettings);
 
