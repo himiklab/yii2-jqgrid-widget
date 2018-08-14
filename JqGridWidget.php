@@ -53,6 +53,12 @@ class JqGridWidget extends Widget
     /** @var string */
     public $requestUrl = 'jqgrid';
 
+    /** @var string */
+    public $requestUrlSubgrid = 'jqgrid-subgrid';
+
+    /** @var bool */
+    public $subgrid = false;
+
     /** @var bool */
     public $enablePager = true;
 
@@ -176,6 +182,12 @@ class JqGridWidget extends Widget
         $gridSettings['url'] = Url::to([$this->requestUrl, 'action' => 'request']);
         $gridSettings['datatype'] = 'json';
         $gridSettings['iconSet'] = 'jQueryUI'; // OlegKi's version only
+
+        if ($this->subgrid) {
+            $gridSettings['subGrid'] = true;
+            $gridSettings['subGridUrl'] = Url::to([$this->requestUrlSubgrid]);
+            $gridSettings['jsonReader']['subgrid']['repeatitems'] = false;
+        }
 
         if ($this->enableHiddenColumnsOptimization) {
             $gridSettings['serializeGridData'] = new JsExpression(

@@ -162,7 +162,7 @@ class JqGridActiveAction extends Action
             }
 
             foreach ($this->columns as $modelAttribute) {
-                $response['rows'][$i]['cell'][$modelAttribute] = $this->getValue($record, $modelAttribute);
+                $response['rows'][$i]['cell'][$modelAttribute] = $this->getValueFromAr($record, $modelAttribute);
             }
             ++$i;
         }
@@ -560,50 +560,6 @@ class JqGridActiveAction extends Action
 
         $field = $model::tableName() . '.' . $attribute;
         return true;
-    }
-
-    /**
-     * @param \yii\db\ActiveRecord|array $record
-     * @param string $attribute
-     * @param string $separator
-     * @return array|null|string
-     */
-    protected function getValue($record, $attribute, $separator = "\n")
-    {
-        if (($pointPosition = strrpos($attribute, '.')) !== false) {
-            $record = $this->getValue($record, substr($attribute, 0, $pointPosition));
-            $attribute = substr($attribute, $pointPosition + 1);
-        }
-
-        if ($record === null) {
-            return null;
-        }
-        if (is_array($record)) {
-            $result = null;
-            foreach ($record as $currentRecord) {
-                $currentValue = $currentRecord->$attribute;
-                if (is_object($currentValue)) {
-                    $result[] = $currentValue;
-                } elseif (is_array($currentValue)) {
-                    if ($result === null) {
-                        $result = $currentValue;
-                    } else {
-                        $result = array_merge($currentValue, $result);
-                    }
-                } elseif ($currentValue === null) {
-                    return null;
-                } else {
-                    $result .= ($currentRecord->$attribute . $separator);
-                }
-            }
-            if (is_string($result)) {
-                return trim($result, $separator);
-            }
-
-            return $result;
-        }
-
-        return $record->$attribute;
     }
 
     /**
