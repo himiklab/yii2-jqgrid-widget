@@ -15,6 +15,7 @@
         }
     ],
     "require": {
+        "ext-json": "*",
         "yiisoft/yii2": "*",
         "yiisoft/yii2-jui": "*",
         "bower-asset/free-jqGrid": "*"

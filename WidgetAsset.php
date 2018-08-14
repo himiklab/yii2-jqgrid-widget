@@ -1,13 +1,12 @@
 <?php
 /**
  * @link https://github.com/himiklab/yii2-jqgrid-widget
- * @copyright Copyright (c) 2014-2017 HimikLab
+ * @copyright Copyright (c) 2014-2018 HimikLab
  * @license http://opensource.org/licenses/MIT MIT
  */
 
 namespace himiklab\jqgrid;
 
-use Yii;
 use yii\web\AssetBundle;
 
 class WidgetAsset extends AssetBundle
@@ -19,7 +18,7 @@ class WidgetAsset extends AssetBundle
         'himiklab\jqgrid\JqGridAsset'
     ];
 
-    public $js =  [
+    public $js = [
         'js/export.xml.js'
     ];
 }

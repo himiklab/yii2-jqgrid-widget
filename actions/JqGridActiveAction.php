@@ -1,7 +1,7 @@
 <?php
 /**
  * @link https://github.com/himiklab/yii2-jqgrid-widget
- * @copyright Copyright (c) 2014-2017 HimikLab
+ * @copyright Copyright (c) 2014-2018 HimikLab
  * @license http://opensource.org/licenses/MIT MIT
  */
 
@@ -12,6 +12,7 @@ use yii\base\Action;
 use yii\base\InvalidConfigException;
 use yii\data\ActiveDataProvider;
 use yii\data\Sort;
+use yii\db\ActiveRecord;
 use yii\helpers\Json;
 use yii\web\BadRequestHttpException;
 use yii\web\Response;
@@ -45,7 +46,7 @@ class JqGridActiveAction extends Action
 
     use JqGridActionTrait;
 
-    /** @var string|\yii\db\ActiveRecord $model */
+    /** @var string|ActiveRecord $model */
     public $model;
 
     /**
@@ -65,24 +66,24 @@ class JqGridActiveAction extends Action
 
     public function run()
     {
-        if (!is_subclass_of($this->model, '\yii\db\ActiveRecord')) {
+        if (!\is_subclass_of($this->model, ActiveRecord::className())) {
             throw new InvalidConfigException('The `model` param must be object or class extends \yii\db\ActiveRecord.');
         }
-        if (is_string($this->model)) {
+        if (\is_string($this->model)) {
             $this->model = new $this->model;
         }
         if (!$getActionParam = Yii::$app->request->get('action')) {
             throw new BadRequestHttpException('GET param `action` isn\'t set.');
         }
 
-        if (is_callable($this->columns)) {
-            $this->columns = call_user_func($this->columns);
+        if (\is_callable($this->columns)) {
+            $this->columns = \call_user_func($this->columns);
         }
 
         // add PK if it exist and not set to $this->columns
         $model = $this->model;
         $modelPK = $model::primaryKey();
-        if (isset($modelPK[0]) && !empty($this->columns) && !in_array($modelPK[0], $this->columns)) {
+        if (isset($modelPK[0]) && !empty($this->columns) && !\in_array($modelPK[0], $this->columns)) {
             $this->columns[] = $modelPK[0];
         }
 
@@ -92,8 +93,8 @@ class JqGridActiveAction extends Action
 
         $requestData = $this->getRequestData();
         if (isset($requestData['visibleColumns'])) {
-            $this->columns = array_filter($this->columns, function ($column) use ($modelPK, $requestData) {
-                return in_array($column, $requestData['visibleColumns'])
+            $this->columns = \array_filter($this->columns, function ($column) use ($modelPK, $requestData) {
+                return \in_array($column, $requestData['visibleColumns'])
                     || (isset($modelPK[0]) && $column == $modelPK[0]);
             });
         }
@@ -126,8 +127,8 @@ class JqGridActiveAction extends Action
         $model = $this->model;
         $query = $model::find();
 
-        if (is_callable($this->scope)) {
-            call_user_func($this->scope, $query);
+        if (\is_callable($this->scope)) {
+            \call_user_func($this->scope, $query);
         }
 
         // search
@@ -147,15 +148,15 @@ class JqGridActiveAction extends Action
         $response = [];
         $response['page'] = $requestData['page'];
         $response['total'] =
-            $requestData['rows'] != 0 ? ceil($recordsTotalCount / $requestData['rows']) : 0;
+            $requestData['rows'] != 0 ? \ceil($recordsTotalCount / $requestData['rows']) : 0;
         $response['records'] = $recordsTotalCount;
 
         $i = 0;
         foreach ($dataProvider->getModels() as $record) {
             /** @var \yii\db\ActiveRecord $record */
             if ($record->primaryKey !== null) {
-                if (is_array($record->primaryKey)) {
-                    $response['rows'][$i]['id'] = implode(self::COMPOSITE_KEY_DELIMITER, $record->primaryKey);
+                if (\is_array($record->primaryKey)) {
+                    $response['rows'][$i]['id'] = \implode(self::COMPOSITE_KEY_DELIMITER, $record->primaryKey);
                 } else {
                     $response['rows'][$i]['id'] = $record->primaryKey;
                 }
@@ -184,9 +185,9 @@ class JqGridActiveAction extends Action
         }
 
         $modelPK = $model::primaryKey();
-        if (count($modelPK) > 1) {
-            $idParts = explode(self::COMPOSITE_KEY_DELIMITER, $requestData['id']);
-            $recordCondition = array_combine($modelPK, $idParts);
+        if (\count($modelPK) > 1) {
+            $idParts = \explode(self::COMPOSITE_KEY_DELIMITER, $requestData['id']);
+            $recordCondition = \array_combine($modelPK, $idParts);
         } else {
             $recordCondition = $requestData['id'];
         }
@@ -200,13 +201,13 @@ class JqGridActiveAction extends Action
         $recordAttributes = [];
         foreach ($this->columns as $column) {
             if (isset($requestData[$column])) {
-                if ((strpos($column, '.')) === false) {
+                if (\strpos($column, '.') === false) {
                     // no relation
                     $record->$column = $requestData[$column];
                     $recordAttributes[] = $column;
                 } else {
                     // with relation
-                    preg_match('/(.+)\.([^\.]+)/', $column, $matches);
+                    \preg_match('/(.+)\.([^\.]+)/', $column, $matches);
                     $relationColumns[$matches[1]][] = [
                         'column' => $matches[2],
                         'value' => $requestData[$column]
@@ -217,17 +218,17 @@ class JqGridActiveAction extends Action
 
         $transaction = Yii::$app->db->beginTransaction();
         try {
-            if (count($relationColumns)) {
+            if (\count($relationColumns)) {
                 foreach ($relationColumns as $relationName => $columns) {
                     $relation = $record;
                     $relationAttributes = [];
-                    foreach (explode('.', $relationName) as $relationPart) {
+                    foreach (\explode('.', $relationName) as $relationPart) {
                         $relation = $relation->$relationPart;
                         if ($relation === null) {
                             throw new BadRequestHttpException("Related model {$relationName} does not exist.");
                         }
                     }
-                    if (is_array($relation)) {
+                    if (\is_array($relation)) {
                         throw new BadRequestHttpException('hasMany relation type isn\'t supported.');
                     }
 
@@ -284,7 +285,7 @@ class JqGridActiveAction extends Action
     /**
      * @param array $requestData
      * @throws BadRequestHttpException
-     * @throws \Exception
+     * @throws \yii\db\StaleObjectException
      */
     protected function delAction($requestData)
     {
@@ -296,11 +297,11 @@ class JqGridActiveAction extends Action
         }
 
         $modelPK = $model::primaryKey();
-        $deleteIds = explode(',', $requestData['id']);
-        if (count($modelPK) > 1) {
+        $deleteIds = \explode(',', $requestData['id']);
+        if (\count($modelPK) > 1) {
             foreach ($deleteIds as &$currentCompositeId) {
-                $idParts = explode(self::COMPOSITE_KEY_DELIMITER, $currentCompositeId);
-                $currentCompositeId = array_combine($modelPK, $idParts);
+                $idParts = \explode(self::COMPOSITE_KEY_DELIMITER, $currentCompositeId);
+                $currentCompositeId = \array_combine($modelPK, $idParts);
             }
             unset($currentCompositeId);
         }
@@ -329,7 +330,7 @@ class JqGridActiveAction extends Action
 
         // filter panel
         foreach ($this->columns as $modelAttribute) {
-            if (array_key_exists($modelAttribute, $requestData)) {
+            if (\array_key_exists($modelAttribute, $requestData)) {
                 $searchData['rules'][] = [
                     'op' => 'bw',
                     'field' => $modelAttribute,
@@ -398,7 +399,7 @@ class JqGridActiveAction extends Action
                 $rule['field'] = $this->queryAliases[$rule['field']];
             }
 
-            if ((strpos($rule['field'], '.')) === false) {
+            if (\strpos($rule['field'], '.') === false) {
                 $rule['field'] = $model::tableName() . '.' . $rule['field'];
             }
 
@@ -444,13 +445,13 @@ class JqGridActiveAction extends Action
                         $ruleArray[] = ['is not', $rule['field'], null];
                         break;
                     case 'in':
-                        $rule['data'] = explode(',', $rule['data']);
-                        array_walk($rule['data'], 'trim');
+                        $rule['data'] = \explode(',', $rule['data']);
+                        \array_walk($rule['data'], 'trim');
                         $ruleArray[] = ['in', $rule['field'], $rule['data']];
                         break;
                     case 'ni':
-                        $rule['data'] = explode(',', $rule['data']);
-                        array_walk($rule['data'], 'trim');
+                        $rule['data'] = \explode(',', $rule['data']);
+                        \array_walk($rule['data'], 'trim');
                         $ruleArray[] = ['not in', $rule['field'], $rule['data']];
                         break;
                     case 'lt':
@@ -470,7 +471,7 @@ class JqGridActiveAction extends Action
                 }
             }
         }
-        if (count($ruleArray)) {
+        if (\count($ruleArray)) {
             $query->$baseCondition($ruleArray);
         }
     }
@@ -490,19 +491,19 @@ class JqGridActiveAction extends Action
 
         $attributes = [];
         $defaultOrder = [];
-        $sidxArray = explode(',', $requestData['sidx']);
+        $sidxArray = \explode(',', $requestData['sidx']);
 
-        if (count($sidxArray) > 1) {
+        if (\count($sidxArray) > 1) {
             // multi-column
             foreach ($sidxArray as $sidx) {
-                if (preg_match('/(.+)\s(asc|desc)/', $sidx, $sidxMatch)) {
+                if (\preg_match('/(.+)\s(asc|desc)/', $sidx, $sidxMatch)) {
                     $this->prepareRelationField($query, $sidxMatch[1]);
 
-                    $sidxMatch[1] = trim($sidxMatch[1]);
+                    $sidxMatch[1] = \trim($sidxMatch[1]);
                     $attributes[] = $sidxMatch[1];
                     $defaultOrder[$sidxMatch[1]] = ($sidxMatch[2] === 'asc' ? SORT_ASC : SORT_DESC);
                 } else {
-                    $sidx = trim($sidx);
+                    $sidx = \trim($sidx);
                     $this->prepareRelationField($query, $sidx);
 
                     $attributes[] = $sidx;
@@ -511,7 +512,7 @@ class JqGridActiveAction extends Action
             }
         } else {
             // single-column
-            $attributes[0] = trim($requestData['sidx']);
+            $attributes[0] = \trim($requestData['sidx']);
             $this->prepareRelationField($query, $attributes[0]);
 
             $defaultOrder[$attributes[0]] = ($requestData['sord'] === 'asc' ? SORT_ASC : SORT_DESC);
@@ -531,20 +532,20 @@ class JqGridActiveAction extends Action
      */
     protected function prepareRelationField($query, &$field)
     {
-        if (strpos($field, '.') === false) {
+        if (\strpos($field, '.') === false) {
             return false;
         }
         $model = $this->model;
 
         $fullRelation = '';
-        $fieldElements = explode('.', $field);
-        $fieldElementsCount = count($fieldElements);
+        $fieldElements = \explode('.', $field);
+        $fieldElementsCount = \count($fieldElements);
 
         for ($i = 1; $i < $fieldElementsCount; ++$i) {
             $relationName = $fieldElements[$i - 1];
-            $relationMethod = 'get' . ucfirst($relationName);
+            $relationMethod = 'get' . \ucfirst($relationName);
 
-            if (!method_exists($model, $relationMethod)) {
+            if (!\method_exists($model, $relationMethod)) {
                 throw new BadRequestHttpException('Relation isn\'t exist.');
             }
 
@@ -554,7 +555,7 @@ class JqGridActiveAction extends Action
             $model = new $relationQuery->modelClass;
             $fullRelation .= ('.' . $relationName);
         }
-        $query->joinWith(trim($fullRelation, '.'));
+        $query->joinWith(\trim($fullRelation, '.'));
 
         $attribute = $fieldElements[$fieldElementsCount - 1];
 
@@ -569,7 +570,7 @@ class JqGridActiveAction extends Action
     {
         $errors = '';
         foreach ($model->errors as $error) {
-            $errors .= (implode(' ', $error) . ' ');
+            $errors .= (\implode(' ', $error) . ' ');
         }
         echo $errors;
     }

@@ -1,7 +1,7 @@
 <?php
 /**
  * @link https://github.com/himiklab/yii2-jqgrid-widget
- * @copyright Copyright (c) 2014-2017 HimikLab
+ * @copyright Copyright (c) 2014-2018 HimikLab
  * @license http://opensource.org/licenses/MIT MIT
  */
 
@@ -33,9 +33,9 @@ class JqGridAsset extends AssetBundle
     protected function registerLanguageAsset()
     {
         $language = Yii::$app->language;
-        if (!file_exists(Yii::getAlias($this->sourcePath . "/js/i18n/grid.locale-{$language}.js"))) {
-            $language = substr($language, 0, 2);
-            if (!file_exists(Yii::getAlias($this->sourcePath . "/js/i18n/grid.locale-{$language}.js"))) {
+        if (!\file_exists(Yii::getAlias($this->sourcePath . "/js/i18n/grid.locale-{$language}.js"))) {
+            $language = \substr($language, 0, 2);
+            if (!\file_exists(Yii::getAlias($this->sourcePath . "/js/i18n/grid.locale-{$language}.js"))) {
                 return;
             }
         }

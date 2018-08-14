@@ -1,7 +1,7 @@
 <?php
 /**
  * @link https://github.com/himiklab/yii2-jqgrid-widget
- * @copyright Copyright (c) 2014-2017 HimikLab
+ * @copyright Copyright (c) 2014-2018 HimikLab
  * @license http://opensource.org/licenses/MIT MIT
  */
 
@@ -54,17 +54,17 @@ trait JqGridActionTrait
      */
     protected function getRealPOSTData()
     {
-        $pairs = explode('&', file_get_contents('php://input'));
+        $pairs = \explode('&', \file_get_contents('php://input'));
         $vars = [];
         foreach ($pairs as $pair) {
-            $pairParts = explode('=', $pair);
-            $name = urldecode($pairParts[0]);
+            $pairParts = \explode('=', $pair);
+            $name = \urldecode($pairParts[0]);
 
-            $value = urldecode($pairParts[1]);
+            $value = \urldecode($pairParts[1]);
             if ($value === 'null') {
                 $value = null;
             }
-            if (preg_match('/(.+)\[\]$/', $name, $nameParts)) {
+            if (\preg_match('/(.+)\[\]$/', $name, $nameParts)) {
                 $vars[$nameParts[1]][] = $value;
             } else {
                 $vars[$name] = $value;

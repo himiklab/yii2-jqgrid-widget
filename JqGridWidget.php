@@ -1,7 +1,7 @@
 <?php
 /**
  * @link https://github.com/himiklab/yii2-jqgrid-widget
- * @copyright Copyright (c) 2014-2017 HimikLab
+ * @copyright Copyright (c) 2014-2018 HimikLab
  * @license http://opensource.org/licenses/MIT MIT
  */
 
@@ -30,7 +30,6 @@ use yii\web\JsExpression;
  *       ],
  *       'rowNum' => 15,
  *       'autowidth' => true,
- *       'height' => 'auto',
  *   ],
  *   'pagerSettings' => [
  *       'edit' => ['reloadAfterSubmit' => true, 'modal' => true],
@@ -217,7 +216,7 @@ class JqGridWidget extends Widget
                 $gridSettings['afterSaveCell'] = new JsExpression('function(){jQuery(this).trigger("reloadGrid");}');
             }
         }
-        $gridSettings = array_merge($gridSettings, $gridUserSettings);
+        $gridSettings = \array_merge($gridSettings, $gridUserSettings);
 
         return Json::encode($gridSettings, $this->jsonSettings);
     }
@@ -250,7 +249,7 @@ class JqGridWidget extends Widget
                     function(response){
                         return [response.responseText == "", response.responseText, null];
                     }');
-                    $pagerOptions['edit'] = array_merge($editSettings, $optionSettings);
+                    $pagerOptions['edit'] = \array_merge($editSettings, $optionSettings);
                     break;
                 case 'add':
                     $addSettings['url'] = Url::to([$this->requestUrl, 'action' => 'add']);
@@ -258,7 +257,7 @@ class JqGridWidget extends Widget
                     function(response){
                         return [response.responseText == "", response.responseText, null];
                     }');
-                    $pagerOptions['add'] = array_merge($addSettings, $optionSettings);
+                    $pagerOptions['add'] = \array_merge($addSettings, $optionSettings);
                     break;
                 case 'del':
                     $delSettings['url'] = Url::to([$this->requestUrl, 'action' => 'del']);
@@ -266,7 +265,7 @@ class JqGridWidget extends Widget
                     function(response){
                         return [response.responseText == "", response.responseText, null];
                     }');
-                    $pagerOptions['del'] = array_merge($delSettings, $optionSettings);
+                    $pagerOptions['del'] = \array_merge($delSettings, $optionSettings);
                     break;
                 case 'search':
                     $pagerOptions['search'] = $optionSettings;
@@ -292,8 +291,8 @@ class JqGridWidget extends Widget
         }
         $resultOptions = Json::encode($resultOptions, $this->jsonSettings);
 
-        array_unshift($resultSettings, $resultOptions);
-        return implode(',' . PHP_EOL, $resultSettings);
+        \array_unshift($resultSettings, $resultOptions);
+        return \implode(',' . PHP_EOL, $resultSettings);
     }
 
     protected function prepareToolbarSettings($filterToolbarSettings)

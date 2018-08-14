@@ -1,7 +1,7 @@
 <?php
 /**
  * @link https://github.com/himiklab/yii2-jqgrid-widget
- * @copyright Copyright (c) 2014-2017 HimikLab
+ * @copyright Copyright (c) 2014-2018 HimikLab
  * @license http://opensource.org/licenses/MIT MIT
  */
 
@@ -65,10 +65,10 @@ class JqGridArrayAction extends Action
      */
     protected function requestAction($requestData)
     {
-        if (is_callable($this->models)) {
-            $this->models = call_user_func($this->models);
+        if (\is_callable($this->models)) {
+            $this->models = \call_user_func($this->models);
         }
-        
+
         $dataProvider = new ArrayDataProvider(
             [
                 'allModels' => $this->models,
@@ -85,7 +85,7 @@ class JqGridArrayAction extends Action
 
         $i = 0;
         foreach ($dataProvider->getModels() as $id => $record) {
-            if (!is_array($record)) {
+            if (!\is_array($record)) {
                 throw new InvalidConfigException('The `models` param isn\'t valid array.');
             }
             $response['rows'][$i]['id'] = $id;
@@ -112,22 +112,22 @@ class JqGridArrayAction extends Action
 
         $attributes = [];
         $defaultOrder = [];
-        $sidxArray = explode(',', $requestData['sidx']);
+        $sidxArray = \explode(',', $requestData['sidx']);
 
-        if (count($sidxArray) > 1) {
+        if (\count($sidxArray) > 1) {
             // multi-column
             foreach ($sidxArray as $sidx) {
-                if (preg_match('/(.+)\s(asc|desc)/', $sidx, $sidxMatch)) {
+                if (\preg_match('/(.+)\s(asc|desc)/', $sidx, $sidxMatch)) {
                     $attributes[] = $sidxMatch[1];
                     $defaultOrder[$sidxMatch[1]] = ($sidxMatch[2] === 'asc' ? SORT_ASC : SORT_DESC);
                 } else {
-                    $attributes[] = trim($sidx);
-                    $defaultOrder[trim($sidx)] = ($requestData['sord'] === 'asc' ? SORT_ASC : SORT_DESC);
+                    $attributes[] = \trim($sidx);
+                    $defaultOrder[\trim($sidx)] = ($requestData['sord'] === 'asc' ? SORT_ASC : SORT_DESC);
                 }
             }
         } else {
             // single-column
-            $attributes[0] = trim($requestData['sidx']);
+            $attributes[0] = \trim($requestData['sidx']);
             $defaultOrder[$attributes[0]] = ($requestData['sord'] === 'asc' ? SORT_ASC : SORT_DESC);
         }
 
