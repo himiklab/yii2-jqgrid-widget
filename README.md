@@ -33,10 +33,6 @@ public function actions()
         'jqgrid' => [
             'class' => JqGridActiveAction::className(),
             'model' => Page::className(),
-            'scope' => function ($query) {
-                /** @var \yii\db\ActiveQuery $query */
-                $query->select(['title', 'author', 'language']);
-            },
         ],
     ];
 }
@@ -51,22 +47,134 @@ use yii\helpers\Url;
 <?= JqGridWidget::widget([
     'requestUrl' => Url::to('jqgrid'),
     'gridSettings' => [
-        'colNames' => ['Title', 'Author', 'Language'],
+        'colNames' => ['ID', 'Title', 'Author', 'Language'],
         'colModel' => [
-            ['name' => 'title', 'index' => 'title', 'editable' => true],
-            ['name' => 'author', 'index' => 'author', 'editable' => true],
-            ['name' => 'language', 'index' => 'language', 'editable' => true]
+            [
+                'name' => 'id', 'index' => 'id',
+                'formatter' => 'integer',
+                'searchoptions' => [
+                    'searchhidden' => true,
+                    'sopt' => ['eq', 'ne', 'lt', 'le', 'gt', 'ge', 'nu', 'nn'],
+                ],
+                'hidden' => false, 'editable' => false
+            ],
+            [
+                'name' => 'title', 'index' => 'title',
+                'searchoptions' => [
+                    'searchhidden' => true,
+                    'sopt' => ['cn', 'nc', 'bw', 'bn', 'eq', 'ne', 'ew', 'en', 'nu', 'nn'],
+                ],
+                'hidden' => false, 'editable' => true
+            ],
+            [
+                'name' => 'author', 'index' => 'author',
+                'searchoptions' => [
+                    'searchhidden' => true,
+                    'sopt' => ['cn', 'nc', 'bw', 'bn', 'eq', 'ne', 'ew', 'en', 'nu', 'nn'],
+                ],
+                'hidden' => false, 'editable' => true
+            ],
+            [
+                'name' => 'language', 'index' => 'language',
+                'formatter' => 'select',
+                'stype' => 'select',
+                'edittype' => 'select',
+                'searchoptions' => [
+                    'clearSearch' => false,
+                    'searchhidden' => true,
+                    'value' => ':;en:English;ru:Русский;cn:汉语',
+                    'sopt' => ['eq', 'ne', 'nu', 'nn'],
+                ],
+                'editoptions' => ['value' => [
+                    'en' => 'English',
+                    'ru' => 'Русский',
+                    'cn' => '汉语',
+                ]],
+                'hidden' => false, 'editable' => true
+            ],
         ],
-        'rowNum' => 15,
+        'rowNum' => 30,
+        'rowList' => [30, 60, 90],
         'autowidth' => true,
-        'height' => 'auto',
+        'multiselect' => true,
+        'multiSort' => true,
+        'rownumbers' => true,
+        'viewrecords' => true,
+        'cmTemplate' => ['autoResizable' => true],
+        'autoresizeOnLoad' => true,
     ],
     'pagerSettings' => [
         'edit' => true,
         'add' => true,
         'del' => true,
-        'search' => ['multipleSearch' => true]
+        'search' => [
+            'multipleSearch' => true,
+            'multipleGroup' => true,
+            'closeAfterSearch' => true,
+            'showQuery' => true,
+        ]
     ],
     'enableFilterToolbar' => true,
+    'enableColumnChooser' => true,
+    'filterToolbarSettings' => [
+        'stringResult' => true,
+    ],
+]) ?>
+```
+
+or
+
+```php
+use app\models\Page;
+use himiklab\jqgrid\JqGridHelper;
+use himiklab\jqgrid\JqGridWidget;
+use yii\helpers\Url;
+
+<?php
+$columns = [
+    'id' => ['type' => 'integer',],
+    'title',
+    'author',
+    'language' => [
+        'type' => 'list',
+        'data' => Page::getAllLanguages(),
+    ],
+    'visible' => ['type' => 'boolean',],
+];
+
+$columnsIsVisible = ['id', 'title', 'author', 'language', 'visible',];
+$columnsIsEditable = ['title', 'author', 'language', 'visible',];
+
+echo JqGridWidget::widget([
+    'requestUrl' => Url::to('jqgrid'),
+    'gridSettings' => [
+        'colNames' => ['ID', 'Title', 'Author', 'Language', 'Visible'],
+        'colModel' => JqGridHelper::jqgridColModel($columns, $columnsIsVisible, $columnsIsEditable),
+        'rowNum' => 30,
+        'rowList' => [30, 60, 90],
+        'autowidth' => true,
+        'multiselect' => true,
+        'multiSort' => true,
+        'rownumbers' => true,
+        'viewrecords' => true,
+        'cmTemplate' => ['autoResizable' => true],
+        'autoresizeOnLoad' => true,
+    ],
+    'pagerSettings' => [
+        'edit' => true,
+        'add' => true,
+        'del' => true,
+        'search' => [
+            'multipleSearch' => true,
+            'multipleGroup' => true,
+            'closeAfterSearch' => true,
+            'showQuery' => true,
+        ]
+    ],
+    'enableFilterToolbar' => true,
+    'enableColumnChooser' => true,
+    'filterToolbarSettings' => [
+        'stringResult' => true,
+    ],
 ]) ?>
 ```

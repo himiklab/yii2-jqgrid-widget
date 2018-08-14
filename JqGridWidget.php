@@ -292,17 +292,4 @@ class JqGridWidget extends Widget
 
         return Json::encode($filterToolbarSettings, $this->jsonSettings);
     }
-
-    /**
-     * @param array|\yii\db\ActiveRecord $array
-     * @return string
-     */
-    public static function optionsGenerate($array)
-    {
-        $result = ':';
-        foreach ($array as $key => $option) {
-            $result .= ";{$key}:{$option}";
-        }
-        return $result;
-    }
 }
