@@ -483,39 +483,26 @@ class JqGridActiveAction extends Action
      */
     protected function getSort($requestData, $query)
     {
-        if (!isset($requestData['sidx']) || $requestData['sidx'] == ''
-            || ($requestData['sord'] !== 'asc' && $requestData['sord'] !== 'desc')
-        ) {
+        if (!isset($requestData['sidx']) || $requestData['sidx'] === '') {
             return false;
         }
 
         $attributes = [];
         $defaultOrder = [];
-        $sidxArray = \explode(',', $requestData['sidx']);
+        foreach (\explode(',', $requestData['sidx']) as $sidx) {
+            if (\preg_match('/(.+)\s(asc|desc)/', $sidx, $sidxMatch)) {
+                $this->prepareRelationField($query, $sidxMatch[1]);
 
-        if (\count($sidxArray) > 1) {
-            // multi-column
-            foreach ($sidxArray as $sidx) {
-                if (\preg_match('/(.+)\s(asc|desc)/', $sidx, $sidxMatch)) {
-                    $this->prepareRelationField($query, $sidxMatch[1]);
+                $sidxMatch[1] = \trim($sidxMatch[1]);
+                $attributes[] = $sidxMatch[1];
+                $defaultOrder[$sidxMatch[1]] = ($sidxMatch[2] === 'asc' ? SORT_ASC : SORT_DESC);
+            } else {
+                $sidx = \trim($sidx);
+                $this->prepareRelationField($query, $sidx);
 
-                    $sidxMatch[1] = \trim($sidxMatch[1]);
-                    $attributes[] = $sidxMatch[1];
-                    $defaultOrder[$sidxMatch[1]] = ($sidxMatch[2] === 'asc' ? SORT_ASC : SORT_DESC);
-                } else {
-                    $sidx = \trim($sidx);
-                    $this->prepareRelationField($query, $sidx);
-
-                    $attributes[] = $sidx;
-                    $defaultOrder[$sidx] = ($requestData['sord'] === 'asc' ? SORT_ASC : SORT_DESC);
-                }
+                $attributes[] = $sidx;
+                $defaultOrder[$sidx] = ($requestData['sord'] === 'asc' ? SORT_ASC : SORT_DESC);
             }
-        } else {
-            // single-column
-            $attributes[0] = \trim($requestData['sidx']);
-            $this->prepareRelationField($query, $attributes[0]);
-
-            $defaultOrder[$attributes[0]] = ($requestData['sord'] === 'asc' ? SORT_ASC : SORT_DESC);
         }
 
         return new Sort([
