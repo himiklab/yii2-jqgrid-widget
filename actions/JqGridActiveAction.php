@@ -216,7 +216,7 @@ class JqGridActiveAction extends Action
             }
         }
 
-        $transaction = Yii::$app->db->beginTransaction();
+        $transaction = $model::getDb()->beginTransaction();
         try {
             if (\count($relationColumns)) {
                 foreach ($relationColumns as $relationName => $columns) {
