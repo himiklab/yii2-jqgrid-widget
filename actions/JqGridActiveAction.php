@@ -51,7 +51,7 @@ class JqGridActiveAction extends Action
 
     /**
      * @var array|callable $columns the columns being selected.
-     * This is used to construct the SELECT clause in a SQL statement. If not set, it means selecting all columns.
+     * If not set, it means selecting all columns.
      */
     public $columns = [];
 
