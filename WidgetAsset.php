@@ -19,6 +19,6 @@ class WidgetAsset extends AssetBundle
     ];
 
     public $js = [
-        'js/export.xml.js'
+        'js/widget.js'
     ];
 }
