@@ -1,5 +1,6 @@
 jQuery.extend(jQuery.jgrid, {
     XMLExport: function (widgetId, fileName) {
+        "use strict";
         var xmlContent = "<?xml version='1.0'?>\r\n"
             + "<?mso-application progid='Excel.Sheet'?>\r\n"
             + "<Workbook xmlns='urn:schemas-microsoft-com:office:spreadsheet' xmlns:o='urn:schemas-microsoft-com:office:office' " +
@@ -9,14 +10,14 @@ jQuery.extend(jQuery.jgrid, {
             + "<Table>\r\n";
 
         xmlContent += "<Row>\r\n";
-        $("#gview_jqGrid-" + widgetId + " table tr[class='ui-jqgrid-labels'] th:visible div").each(function () {
+        jQuery("#gview_jqGrid-" + widgetId + " table tr[class='ui-jqgrid-labels'] th:visible div").each(function () {
             xmlContent += "<Cell><Data ss:Type='String'>" + jQuery(this).text() + "</Data></Cell>\r\n";
         });
         xmlContent += "</Row>\r\n";
 
-        $("#jqGrid-" + widgetId + " tr[class!='jqgfirstrow']").each(function () {
+        jQuery("#jqGrid-" + widgetId + " tr[class!='jqgfirstrow']").each(function () {
             xmlContent += "<Row>\r\n";
-            $("td:visible", this).each(function () {
+            jQuery("td:visible", this).each(function () {
                 xmlContent += "<Cell><Data ss:Type='String'>" + jQuery(this).text() + "</Data></Cell>\r\n";
             });
             xmlContent += "</Row>\r\n";
@@ -37,7 +38,8 @@ jQuery.extend(jQuery.jgrid, {
     }
 });
 
-var getJqGridState = function (grid) {
+function getJqGridState(grid) {
+    "use strict";
     var colModel = grid.jqGrid("getGridParam", "colModel");
     var gridParams = {};
     gridParams.colStatesVisible = {};
@@ -53,13 +55,14 @@ var getJqGridState = function (grid) {
     gridParams.postDataFilters = grid.jqGrid("getGridParam", "postData").filters;
 
     return gridParams;
-};
+}
 
-var setJqGridState = function (gridParams, grid, reload) {
+function setJqGridState(gridParams, grid, reload) {
+    "use strict";
     if (gridParams.colStatesVisible) {
-        var colModel = grid.jqGrid("getGridParam", "colModel");
+        var colModel = grid.jqGrid("getGridParam", "colModel"), cmName;
         for (var i = 0; i < colModel.length; ++i) {
-            var cmName = colModel[i].name;
+            cmName = colModel[i].name;
             if (cmName !== "rn" && cmName !== "cb" && cmName !== "subgrid") {
                 if (colModel[i].hidden === true && gridParams.colStatesVisible[cmName] !== undefined) {
                     grid.showCol(cmName);
@@ -70,7 +73,7 @@ var setJqGridState = function (gridParams, grid, reload) {
         }
 
         var iColByName = grid.jqGrid("getGridParam", "iColByName");
-        var fixedOrder = $.map(Object.keys(gridParams.colStatesVisible), function (name) {
+        var fixedOrder = jQuery.map(Object.keys(gridParams.colStatesVisible), function (name) {
             return (iColByName[name] === undefined) ? null : name;
         });
         for (i = 0; i < colModel.length; ++i) {
@@ -101,8 +104,8 @@ var setJqGridState = function (gridParams, grid, reload) {
         grid.jqGrid("setGridParam", {postData: newPostData});
     }
 
-    $("input[id*='gs_'], select[id*='gs_']").val("");
+    jQuery("input[id*='gs_'], select[id*='gs_']").val("");
     if (reload) {
         grid.trigger("reloadGrid", [{page: 1}]);
     }
-};
+}
