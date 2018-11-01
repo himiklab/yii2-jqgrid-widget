@@ -43,6 +43,7 @@ use yii\web\Response;
 class JqGridActiveAction extends Action
 {
     const COMPOSITE_KEY_DELIMITER = '%';
+    const NULL_VALUE = 'null';
 
     use JqGridActionTrait;
 
@@ -203,14 +204,14 @@ class JqGridActiveAction extends Action
             if (isset($requestData[$column])) {
                 if (\strpos($column, '.') === false) {
                     // no relation
-                    $record->$column = $requestData[$column];
+                    $record->$column = $requestData[$column] === self::NULL_VALUE ? null : $requestData[$column];
                     $recordAttributes[] = $column;
                 } else {
                     // with relation
                     \preg_match('/(.+)\.([^\.]+)/', $column, $matches);
                     $relationColumns[$matches[1]][] = [
                         'column' => $matches[2],
-                        'value' => $requestData[$column]
+                        'value' => $requestData[$column] === self::NULL_VALUE ? null : $requestData[$column]
                     ];
                 }
             }
@@ -404,7 +405,7 @@ class JqGridActiveAction extends Action
             }
 
             // null value in filters
-            if ($rule['op'] === 'eq' && $rule['data'] === 'null') {
+            if ($rule['op'] === 'eq' && $rule['data'] === self::NULL_VALUE) {
                 $rule['op'] = 'nu';
             }
 

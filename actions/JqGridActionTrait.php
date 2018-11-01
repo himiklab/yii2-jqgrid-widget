@@ -61,9 +61,6 @@ trait JqGridActionTrait
             $name = \urldecode($pairParts[0]);
 
             $value = \urldecode($pairParts[1]);
-            if ($value === 'null') {
-                $value = null;
-            }
             if (\preg_match('/(.+)\[\]$/', $name, $nameParts)) {
                 $vars[$nameParts[1]][] = $value;
             } else {
