@@ -393,9 +393,9 @@ class JqGridActiveAction extends Action
         }
 
         foreach ($searchData['rules'] as $rule) {
+            $rule['fieldInitial'] = $rule['field'];
             $this->prepareRelationField($query, $rule['field']);
 
-            $rule['fieldInitial'] = $rule['field'];
             if (isset($this->queryAliases[$rule['field']])) {
                 $rule['field'] = $this->queryAliases[$rule['field']];
             }
